@@ -1,0 +1,33 @@
+
+  
+<div class="login-card">
+    <div class="head">
+      <img src="assets/logo.png" alt="Nexus Logo" class="logo" />
+    </div>
+    
+      <h4>🔐 Employee Login</h4>
+    
+      <form (ngSubmit)="login()" #loginForm="ngForm">
+        <input
+          type="email"
+          name="email"
+          [(ngModel)]="email"
+          placeholder="📧 Email"
+          required
+        />
+        <input
+          type="password"
+          name="password"
+          [(ngModel)]="password"
+          placeholder="🔑 Password"
+          required
+        />
+    
+        <button type="submit">Login</button>
+      </form>
+    
+      <p class="note">Use your company email to log in and track your work.</p>
+    </div>
+  
+  
+    
