@@ -1,1 +1,64 @@
-<p>work-tracker works!</p>
+<div *ngIf="isBrowser; else loadingSSR">
+    <div class="container">
+      <div class="header">
+        <h1>🛠️ Employee Work Tracker</h1>
+        <div class="datetime">
+          <span class="date">{{ currentDate }}</span>
+          <span class="time">{{ currentTime }}</span>
+          <span class="email">👤 {{ userEmail }}</span>
+        </div>
+      </div>
+  
+      <form (ngSubmit)="submitWork()" #workForm="ngForm" class="form">
+        <input
+          type="text"
+          name="projectTitle"
+          [(ngModel)]="projectTitle"
+          placeholder="📌 Project Title"
+          #titleInput="ngModel"
+          required
+        />
+        <div *ngIf="titleInput.invalid && titleInput.touched" class="error">
+          ⚠️ Project title is required.
+        </div>
+        <textarea
+          name="projectDesc"
+          [(ngModel)]="projectDesc"
+          placeholder="📝 Project Description"
+          #descInput="ngModel"
+          required
+        ></textarea>
+
+        <div *ngIf="descInput.invalid && descInput.touched" class="error">
+          ⚠️ Project description is required.
+        </div>
+  
+        <div class="timing-controls">
+          <button type="button" (click)="startWork()" [disabled]="isTracking">
+            ▶️ Start Work
+          </button>
+          <button type="button" (click)="endWork()" [disabled]="!isTracking">
+            ⏹️ End Work
+          </button>
+        </div>
+  
+        <div class="timing">
+          <p>🕒 Start Time: {{ startTime }}</p>
+          <p>🕔 End Time: {{ endTime }}</p>
+          <p>⏱️ Live Timer: <strong>{{ currentTimer }}</strong></p>
+          <p *ngIf="duration">✅ Total Duration: <strong>{{ duration }}</strong></p>
+        </div>
+  
+        <button type="submit" class="submit-btn" 
+        >📤 Submit</button>
+      </form>
+    </div>
+  </div>
+  
+  <ng-template #loadingSSR>
+    <div class="container">
+      <h2>🕗 Loading tracker...</h2>
+      <p>This page is not fully interactive yet. Please wait or view in the browser.</p>
+    </div>
+  </ng-template>
+  

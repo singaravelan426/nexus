@@ -18,7 +18,9 @@
             "browser": "src/main.ts",
             "polyfills": [
               "zone.js"
-            ],
+            ],"allowedCommonJsDependencies": [
+        "lodash"
+     ],
             "tsConfig": "tsconfig.app.json",
             "assets": [
               {
@@ -41,7 +43,7 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
+                  "maximumWarning": "700kB",
                   "maximumError": "1MB"
                 },
                 {
