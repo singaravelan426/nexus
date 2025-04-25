@@ -1,7 +1,7 @@
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
-import { routes } from './app.routes';
+import { AppRoutingModule, routes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 
 
@@ -10,6 +10,9 @@ import { provideAuth, getAuth } from '@angular/fire/auth';
 import { provideDatabase, getDatabase } from '@angular/fire/database';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { DashboardComponent } from './dashboard/dashboard.component';
+import { LeaveReqComponent } from './leave-req/leave-req.component';
+import { WorkTrackerComponent } from './work-tracker/work-tracker.component';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDJg07izYy4Kq34rDMmCorqLRnQb59jWI4",
@@ -25,6 +28,6 @@ const firebaseConfig = {
 export const appConfig: ApplicationConfig = {
   providers: [provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes),
     provideFirebaseApp(() => initializeApp(firebaseConfig)),
-    provideAuth(() => getAuth()),FormsModule,CommonModule,
+    provideAuth(() => getAuth()),FormsModule,CommonModule,DashboardComponent,LeaveReqComponent,WorkTrackerComponent,
     provideDatabase(() => getDatabase()), provideClientHydration(withEventReplay())]
 };
