@@ -1,18 +1,23 @@
 <div class="d-flex" id="wrapper">
     <!-- Sidebar -->
     <div class="bg-dark text-white" id="sidebar-wrapper">
-      <div class="sidebar-heading text-center py-4 primary-text fs-4 fw-bold border-bottom">
-        <i class="fas fa-user-shield me-2"></i>Employee Dashboard
+      <div class="sidebar-heading d-flex align-items-center justify-content-center gap-2 p-4 primary-text fs-4 fw-bold border-bottom">
+        <i class="fa-solid fa-user-tie fa-2x"></i>
+        <span>Employee Dashboard</span>
       </div>
       <div class="list-group list-group-flush my-3">
-        <a href ="/dashboard" class="list-group-item list-group-item-action bg-dark text-white fw-bold">
-          <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+        <a routerLink='/dashboard' class="list-group-item list-group-item-action bg-dark text-white fw-bold">
+          <i class="fa-solid fa-calendar-plus"></i> DashBoard
         </a>
-        <a href="/worklog" class="list-group-item list-group-item-action bg-dark text-white fw-bold">
-          <i class="fas fa-users me-2"></i> Work Log
+        
+      <a routerLink="/worklog" class="list-group-item list-group-item-action bg-dark text-white fw-bold">
+          <i class="fa-solid fa-calendar-plus"></i> Work Log
         </a>
-        <a href="/registers" class="list-group-item list-group-item-action bg-dark text-white fw-bold">
-          <i class="fa-solid fa-user-plus"></i> Leave Request
+        <a routerLink="/leave" class="list-group-item list-group-item-action bg-dark text-white fw-bold">
+          <i class="fa-solid fa-file-pen"></i> Leave Request
+        </a>
+        <a routerLink="/status" class="list-group-item list-group-item-action bg-dark text-white fw-bold">
+          <i class="fa-solid fa-user-plus"></i> Leave Status
         </a>
       </div>
     </div>
@@ -25,7 +30,7 @@
             <img src="asset/logo.png" alt="Logo" class="logo"> 
           </a>
         </div>
-        <button class="btn btn-danger ms-auto" (click)="logout()">Logout</button>
+        <button class="btn " (click)="logout()">Logout</button>
       </nav>
   
       <div class="container mt-4">
@@ -35,10 +40,11 @@
             <div class="card bg-primary text-white shadow">
               <div class="card-body d-flex justify-content-between">
                 <div>
-                  <h5>Total Person</h5>
-                  <h3>50</h3>
+                  <h5>Welcome to {{ userEmail }}</h5>
+                  <h5>📅 Date: {{ currentDate }}</h5>
+                  <h5>⏰ Time: {{ currentTime }}</h5>
                 </div>
-                <i class="fas fa-users"></i>
+                <i class="fa-solid fa-user-check fa-3x mt-3 "></i>
               </div>
             </div>
           </div>
@@ -46,23 +52,22 @@
             <div class="card bg-success text-white shadow">
               <div class="card-body d-flex justify-content-between">
                 <div>
-                  <h5>No Of Group</h5>
-                  <h3>2</h3>
+                  <h5>Today Working Hours</h5>
+                  <h3>{{ totalDurationToday  }}</h3>
                 </div>
-                <i class="fa-solid fa-layer-group fa-2x"></i>
+                <i class="fa-solid fa-hourglass-half fa-3x"></i>
               </div>
             </div>
           </div>
           <div class="col-md-4">
-            <div class="card bg-warning text-dark shadow">
+            <div class="card bg-warning text-white shadow">
               <div class="card-body d-flex justify-content-between">
                 <div>
-                  <h5>Total Revenue</h5>
-                  <h3>10000</h3>
+                  <h5>Total Working Hours</h5>
+                  <h3>{{ totalDurationOverall  }}</h3>
                 </div>
-                <i class="fas fa-dollar-sign fa-2x"></i>
+                <i class="fa-solid fa-clock fa-3x"></i>
               </div>
-              <router-outlet></router-outlet>
             </div>
           </div>
         </div>              

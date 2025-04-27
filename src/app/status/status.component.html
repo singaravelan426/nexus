@@ -1,0 +1,25 @@
+<app-header></app-header>
+
+<div class="container">
+  <h1 class="title">Your Leave Request Status</h1>
+
+  <div *ngIf="leaveRequests.length === 0" class="empty-message">
+    <p>🗒️ No leave requests found.</p>
+  </div>
+
+  <div *ngFor="let leave of leaveRequests" class="leave-card">
+    <div class="card-header">
+      <h3>{{ leave.employeeName }}</h3>
+      <span class="status-badge" [ngClass]="leave.status">{{ leave.status | uppercase }}</span>
+    </div>
+
+    <div class="card-body">
+      <p><strong>Reason:</strong> {{ leave.reason }}</p>
+      <p><strong>From:</strong> {{ leave.startDate }} <strong>To:</strong> {{ leave.endDate }}</p>
+    </div>
+
+    <div class="card-footer">
+      <small>📅 Submitted at: {{ leave.submittedAt }}</small>
+    </div>
+  </div>
+</div>

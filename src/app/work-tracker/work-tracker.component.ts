@@ -5,7 +5,7 @@ import { CommonModule, formatDate } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { isPlatformBrowser } from '@angular/common';
 import { Inject, PLATFORM_ID } from '@angular/core';
-
+import { HeaderComponent } from '../header/header.component';
 
 
 @Component({
@@ -13,8 +13,9 @@ import { Inject, PLATFORM_ID } from '@angular/core';
   templateUrl: './work-tracker.component.html',
   styleUrls: ['./work-tracker.component.css'],
   imports: [
-    FormsModule,CommonModule
-  ],
+    FormsModule, CommonModule,
+    HeaderComponent
+],
 })
 export class WorkTrackerComponent implements OnInit {
   projectTitle = '';

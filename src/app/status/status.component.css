@@ -1,0 +1,75 @@
+.container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 1rem;
+}
+
+.title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: #333;
+}
+
+.empty-message {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.leave-card {
+  background: #f0dbec;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease;
+}
+
+.leave-card:hover {
+  transform: translateY(-4px);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+
+}
+
+.status-badge {
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.pending {
+  background-color: #fff4e5;
+  color: #e69500;
+}
+
+.approved {
+  background-color: #e6ffed;
+  color: #28a745;
+}
+
+.rejected {
+  background-color: #ffe6e6;
+  color: #dc3545;
+}
+
+.card-body p {
+  margin: 0.3rem 0;
+  color: #555;
+  
+}
+
+.card-footer {
+  margin-top: 1rem;
+  text-align: right;
+  font-size: 0.85rem;
+  color: #888;
+}

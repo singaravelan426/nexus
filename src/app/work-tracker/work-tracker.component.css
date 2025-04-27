@@ -1,10 +1,12 @@
 .container {
+  
     max-width: 700px;
     margin: auto;
     background: #fff;
     padding: 20px;
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    
   }
   
   .header h1 {
