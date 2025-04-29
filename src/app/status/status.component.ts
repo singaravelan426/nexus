@@ -19,6 +19,7 @@ export class StatusComponent implements OnInit {
   leaveRequests: any[] = [];
   userEmail = '';
   isBrowser = false;
+  
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object, private auth: Auth) {}
 

@@ -15,11 +15,22 @@
 
     <div class="card-body">
       <p><strong>Reason:</strong> {{ leave.reason }}</p>
-      <p><strong>From:</strong> {{ leave.startDate }} <strong>To:</strong> {{ leave.endDate }}</p>
+      <p><strong>Request Type:</strong> {{ leave.type }}</p>
+
+<div *ngIf="leave.type === 'Leave'">
+  <p><strong>From:</strong> {{ leave.startDate }} <strong>To:</strong> {{ leave.endDate }}</p>
+</div>
+
+<div *ngIf="leave.type === 'Permission'">
+  <p><strong>From:</strong> {{ leave.startTime }} <strong>To:</strong> {{ leave.endTime }}</p>
+</div>
+      <div *ngIf="leave.adminComment">
+        <p><strong>Admin Comment:</strong> {{ leave.adminComment }}</p>
+      </div>
     </div>
 
     <div class="card-footer">
       <small>📅 Submitted at: {{ leave.submittedAt }}</small>
     </div>
-  </div>
-</div>
+  </div> <!-- 👈 closing *ngFor div here -->
+</div> <!-- 👈 closing container div here -->

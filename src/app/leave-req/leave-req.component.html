@@ -2,7 +2,7 @@
 
 <div class="container">
   <div class="header">
-    <h1>Submit Leave Request</h1>
+    <h1>Leave or Permission Request</h1>
     <div class="datetime">
       <span class="date">{{ currentDate }}</span>
       <span class="time">{{ currentTime }}</span>
@@ -24,7 +24,7 @@
     </div>
 
     <div class="form-group">
-      <label for="reason">Reason for Leave</label>
+      <label for="reason">Reason</label>
       <textarea
         id="reason"
         placeholder="Reason for Leave"
@@ -33,31 +33,66 @@
         required
       ></textarea>
     </div>
-
-    <div class="form-group">
-      <label for="startDate">Start Date</label>
-      <input
-        type="date"
-        id="startDate"
-        [(ngModel)]="leaveData.startDate"
-        name="startDate"
-        required
-      />
+    
+    <div class="form-group permission-group">
+      <input type="checkbox" id="isPermission" [(ngModel)]="isPermission" name="isPermission" />
+      <label for="isPermission">Permission</label>
+    </div>
+    
+    <!-- Show date fields if NOT permission -->
+    <div *ngIf="!isPermission">
+      <div class="form-group">
+        <label for="startDate">Start Date</label>
+        <input
+          type="date"
+          id="startDate"
+          [(ngModel)]="leaveData.startDate"
+          name="startDate"
+          [min]="todayDate"  
+          required
+        />
+      </div>
+    
+      <div class="form-group">
+        <label for="endDate">End Date</label>
+        <input
+          type="date"
+          id="endDate"
+          [(ngModel)]="leaveData.endDate"
+          name="endDate"
+          [min]="leaveData.startDate || todayDate" 
+          required
+        />
+      </div>
+    </div>
+    
+    <!-- Show time fields if permission -->
+    <div *ngIf="isPermission">
+      <div class="form-group">
+        <label for="startTime">Start Time</label>
+        <input
+          type="time"
+          id="startTime"
+          [(ngModel)]="leaveData.startTime"
+          name="startTime"
+          required
+        />
+      </div>
+    
+      <div class="form-group">
+        <label for="endTime">End Time</label>
+        <input
+          type="time"
+          id="endTime"
+          [(ngModel)]="leaveData.endTime"
+          name="endTime"
+          required
+        />
+      </div>
     </div>
 
     <div class="form-group">
-      <label for="endDate">End Date</label>
-      <input
-        type="date"
-        id="endDate"
-        [(ngModel)]="leaveData.endDate"
-        name="endDate"
-        required
-      />
-    </div>
-
-    <div class="form-group">
-      <button type="submit" [disabled]="leaveForm.invalid">Submit Leave Request</button>
+      <button type="submit" [disabled]="leaveForm.invalid">Submit</button>
     </div>
   </form>
 </div>

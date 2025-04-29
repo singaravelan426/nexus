@@ -1,14 +1,16 @@
 /* Reset margin and padding and center content */
-body {
+.body {
   margin: 0;
   padding: 0;
   height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(to right, #a1c4fd, #c2e9fb);
+  justify-content: flex-end; /* align to right */
+  align-items: center;       /* center vertically */
+  background:white;
   font-family: 'Segoe UI', sans-serif;
+  padding-right: 5%; /* Add space from the edge if needed */
 }
+
 
 /* Login card styles */
 .login-card {

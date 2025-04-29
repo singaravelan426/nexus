@@ -5,6 +5,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { LeaveReqComponent } from './leave-req/leave-req.component';
 import { NgModule } from '@angular/core';
 import { StatusComponent } from './status/status.component';
+import { LeaveNotificationComponent } from './leave-notification/leave-notification.component';
 
 export const routes: Routes = [
     { path: '', component: LoginComponent },
@@ -12,7 +13,8 @@ export const routes: Routes = [
     { path: 'worklog', component: WorkTrackerComponent},
     { path: 'leave', component: LeaveReqComponent },
     {path: 'dashboard', component: DashboardComponent },
-    {path: 'status',component: StatusComponent}
+    {path: 'status',component: StatusComponent},
+    {path: 'notification',component:LeaveNotificationComponent}
     
 ];
 

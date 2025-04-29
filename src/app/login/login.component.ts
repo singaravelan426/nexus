@@ -24,8 +24,7 @@ export class LoginComponent {
     const auth = getAuth();
     signInWithEmailAndPassword(auth, this.email, this.password)
       .then((userCredential) => {
-        alert('✅ Login Successful!');
-        this.router.navigate(['/dashboard']); // ✅ Route to Work Tracker
+        this.router.navigate(['/dashboard']); 
       })
       .catch((error) => {
         console.error(error);

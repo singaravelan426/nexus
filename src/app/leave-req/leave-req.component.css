@@ -89,4 +89,23 @@
     color: #555;
     font-size: 16px;
   }
+
+  
+  .permission-group {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  
+  .permission-group input[type="checkbox"] {
+    margin-right: 8px;
+    width: auto;
+  }
+  
+  .permission-group label {
+    margin: 0;
+    font-weight: bold;
+    font-size: 14px;
+  }
+  
   

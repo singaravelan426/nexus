@@ -1,0 +1,90 @@
+<app-header></app-header>
+
+<div class="container">
+  <h1 class="page-title">📝 Admin Leave Requests</h1>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button (click)="selectedTab = 'pending'" [class.active]="selectedTab === 'pending'" class="tab-button">Pending</button>
+    <button (click)="selectedTab = 'approved'" [class.active]="selectedTab === 'approved'" class="tab-button">Approved</button>
+    <button (click)="selectedTab = 'rejected'" [class.active]="selectedTab === 'rejected'" class="tab-button">Rejected</button>
+  </div>
+
+  <!-- Pending Requests -->
+  <div *ngIf="selectedTab === 'pending'" class="request-section">
+    <h2 class="section-title">🕒 Pending Requests</h2>
+    <div *ngFor="let request of pendingRequests" class="request-card">
+      <div class="card-header">
+        <h3>{{ request.employeeName }}</h3>
+        <span class="status-badge pending">{{ request.status | uppercase }}</span>
+      </div>
+      <div class="card-body">
+        <p><strong>Reason:</strong> {{ request.reason }}</p>
+        <p><strong>Request Type:</strong> {{ request.type }}</p>
+
+        <div *ngIf="request.type === 'Leave'">
+          <p><strong>Start:</strong> {{ request.startDate }} | <strong>End:</strong> {{ request.endDate }}</p>
+        </div>
+        
+        <div *ngIf="request.type === 'Permission'">
+          <p><strong>Start:</strong> {{ request.startTime }} | <strong>End:</strong> {{ request.endTime }}</p>
+        </div>
+        <p><strong>Submitted:</strong> {{ request.submittedAt }}</p>
+        <textarea [(ngModel)]="request.adminCommentInput" placeholder="Write a comment..." rows="3"></textarea>
+        <div class="action-buttons">
+          <button (click)="updateStatus(request.key, 'approved', request.adminCommentInput)" class="approve-btn">✅ Approve</button>
+          <button (click)="updateStatus(request.key, 'rejected', request.adminCommentInput)" class="reject-btn">❌ Reject</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Approved Requests -->
+  <div *ngIf="selectedTab === 'approved'" class="request-section">
+    <h2 class="section-title">✅ Approved Requests</h2>
+    <div *ngFor="let request of approvedRequests" class="request-card">
+      <div class="card-header">
+        <h3>{{ request.employeeName }}</h3>
+        <span class="status-badge approved">{{ request.status | uppercase }}</span>
+      </div>
+      <div class="card-body">
+        <p><strong>Reason:</strong> {{ request.reason }}</p>
+        <p><strong>Request Type:</strong> {{ request.type }}</p>
+
+        <div *ngIf="request.type === 'Leave'">
+          <p><strong>Start:</strong> {{ request.startDate }} | <strong>End:</strong> {{ request.endDate }}</p>
+        </div>
+        
+        <div *ngIf="request.type === 'Permission'">
+          <p><strong>Start:</strong> {{ request.startTime }} | <strong>End:</strong> {{ request.endTime }}</p>
+        </div>
+        <p><strong>Admin Comment:</strong> {{ request.adminComment }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rejected Requests -->
+  <div *ngIf="selectedTab === 'rejected'" class="request-section">
+    <h2 class="section-title">❌ Rejected Requests</h2>
+    <div *ngFor="let request of rejectedRequests" class="request-card">
+      <div class="card-header">
+        <h3>{{ request.employeeName }}</h3>
+        <span class="status-badge rejected">{{ request.status | uppercase }}</span>
+      </div>
+      <div class="card-body">
+        <p><strong>Reason:</strong> {{ request.reason }}</p>
+        
+        <p><strong>Request Type:</strong> {{ request.type }}</p>
+
+        <div *ngIf="request.type === 'Leave'">
+          <p><strong>Start:</strong> {{ request.startDate }} | <strong>End:</strong> {{ request.endDate }}</p>
+        </div>
+        
+        <div *ngIf="request.type === 'Permission'">
+          <p><strong>Start:</strong> {{ request.startTime }} | <strong>End:</strong> {{ request.endTime }}</p>
+        </div>
+        <p><strong>Admin Comment:</strong> {{ request.adminComment }}</p>
+      </div>
+    </div>
+  </div>
+</div>

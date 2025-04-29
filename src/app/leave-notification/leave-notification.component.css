@@ -1,0 +1,155 @@
+/* Main container for the page */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  /* Page title */
+  .page-title {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  /* Tabs for the status (pending, approved, rejected) */
+  .tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  
+  .tab-button {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 10px 20px;
+    margin: 0 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .tab-button:hover {
+    background-color: #e0e0e0;
+  }
+  
+  .tab-button.active {
+    background-color: #4CAF50;
+    color: white;
+  }
+  
+  /* Section for each tab */
+  .request-section {
+    margin-top: 20px;
+  }
+  
+  /* Title for each section (Pending, Approved, Rejected) */
+  .section-title {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #444;
+  }
+  
+  /* Card for each leave request */
+  .request-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 15px;
+    padding: 20px;
+    transition: transform 0.3s ease;
+  }
+  
+  .request-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  /* Card header (name and status badge) */
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .card-header h3 {
+    font-size: 1.2rem;
+    color: #333;
+  }
+  
+  .status-badge {
+    padding: 5px 10px;
+    font-size: 0.9rem;
+    border-radius: 5px;
+  }
+  
+  .pending {
+    background-color: #ff9800;
+    color: white;
+  }
+  
+  .approved {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  .rejected {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  /* Card body (reason, dates, comments) */
+  .card-body {
+    font-size: 1rem;
+    color: #555;
+  }
+  
+  textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-top: 10px;
+    font-size: 1rem;
+    resize: none;
+  }
+  
+  textarea:focus {
+    border-color: #4CAF50;
+    outline: none;
+  }
+  
+  /* Action buttons for approve/reject */
+  .action-buttons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    width: 48%;
+  }
+  
+  .approve-btn {
+    background-color: #4CAF50;
+    color: white;
+  }
+  
+  .reject-btn {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  button:hover {
+    opacity: 0.9;
+  }
+  
