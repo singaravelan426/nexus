@@ -1,101 +1,119 @@
-<app-header></app-header>
+<div class="card shadow-sm p-2 mb-3  rounded" style="max-width: 450px; margin: auto; background-color: #d4d4d3;" >
+ 
+  <form (ngSubmit)="submitLeave()" #leaveForm="ngForm" class="leave-form" style="background-color:white;">
+      <!-- Logo -->
+      <div class="text-end mb-2">
+        <img src="assets/logo.png" alt="Logo" style="width: 100px; height: auto;">
+      </div>
+     <!-- Timer + User -->
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    
+    <div class="bg-secondary text-white rounded-circle d-flex justify-content-center align-items-center"
+      style="width: 80px; height: 80px; font-size: 1.5rem;">
+      <label for="profileInput" class="d-block">
+        <div
+          class="bg-secondary text-white rounded-circle d-flex justify-content-center align-items-center overflow-hidden"
+          style="width: 110px; height: 110px; font-size: 3rem; cursor: pointer;"
+          title="Click to upload/remove profile picture"
+        >
+          <img *ngIf="profileImageUrl" [src]="profileImageUrl" alt="Profile" class="w-100 h-100 object-fit-cover">
+          <span *ngIf="!profileImageUrl">{{ userInitials }}</span>
+        </div>
+      </label>
+    </div>
 
-<div class="container">
-  <div class="header">
-    <h1>Leave or Permission Request</h1>
-    <div class="datetime">
-      <span class="date">{{ currentDate }}</span>
-      <span class="time">{{ currentTime }}</span>
-      <span class="email">👤 {{ userEmail }}</span>
+    <div class="d-flex align-items-center" style="gap:20px;">
+      <div style="text-align: left;">
+        <p style="font-size: 2rem; margin-bottom: 0;"><strong>{{ currentTimer }}</strong></p>
+      </div>
+
+      <div class="form-check form-switch m-0" style="transform: scale(1.5);">
+        <input class="form-check-input" type="checkbox" id="liveTimerToggle">
+        <label class="form-check-label" for="liveTimerToggle"></label>
+      </div>
     </div>
   </div>
-
-  <form (ngSubmit)="submitLeave()" #leaveForm="ngForm" class="leave-form">
-    <div class="form-group">
-      <label for="employeeName">Your Name</label>
-      <input
-        type="text"
-        id="employeeName"
-        placeholder="Your Name"
-        [(ngModel)]="leaveData.employeeName"
-        name="employeeName"
-        required
-      />
-    </div>
-
-    <div class="form-group">
-      <label for="reason">Reason</label>
-      <textarea
-        id="reason"
-        placeholder="Reason for Leave"
-        [(ngModel)]="leaveData.reason"
-        name="reason"
-        required
-      ></textarea>
-    </div>
-    
-    <div class="form-group permission-group">
-      <input type="checkbox" id="isPermission" [(ngModel)]="isPermission" name="isPermission" />
-      <label for="isPermission">Permission</label>
-    </div>
-    
-    <!-- Show date fields if NOT permission -->
-    <div *ngIf="!isPermission">
+  
       <div class="form-group">
-        <label for="startDate">Start Date</label>
-        <input
-          type="date"
-          id="startDate"
-          [(ngModel)]="leaveData.startDate"
-          name="startDate"
-          [min]="todayDate"  
+        <label for="reason">Reason</label>
+        <textarea
+          id="reason"
+          placeholder="Reason for Leave"
+          [(ngModel)]="leaveData.reason"
+          name="reason"
           required
-        />
+        ></textarea>
       </div>
-    
-      <div class="form-group">
-        <label for="endDate">End Date</label>
-        <input
-          type="date"
-          id="endDate"
-          [(ngModel)]="leaveData.endDate"
-          name="endDate"
-          [min]="leaveData.startDate || todayDate" 
-          required
-        />
+      
+      <div class="form-group permission-group">
+        <input type="checkbox" id="isPermission" [(ngModel)]="isPermission" name="isPermission" />
+        <label for="isPermission">Permission</label>
       </div>
-    </div>
-    
-    <!-- Show time fields if permission -->
-    <div *ngIf="isPermission">
-      <div class="form-group">
-        <label for="startTime">Start Time</label>
-        <input
-          type="time"
-          id="startTime"
-          [(ngModel)]="leaveData.startTime"
-          name="startTime"
-          required
-        />
-      </div>
-    
-      <div class="form-group">
-        <label for="endTime">End Time</label>
-        <input
-          type="time"
-          id="endTime"
-          [(ngModel)]="leaveData.endTime"
-          name="endTime"
-          required
-        />
-      </div>
-    </div>
-
-    <div class="form-group">
-      <button type="submit" [disabled]="leaveForm.invalid">Submit</button>
-    </div>
-  </form>
+      
+      <!-- Show date fields if NOT permission -->
+      <div *ngIf="!isPermission">
+        <!-- Start Date -->
+<div class="form-group">
+  <label for="startDate">Start Date</label>
+  <input
+    type="date"
+    id="startDate"
+    [(ngModel)]="leaveData.startDate"
+    name="startDate"
+    [min]="todayDate"  
+    required
+  />
 </div>
+
+<!-- End Date -->
+<div class="form-group">
+  <label for="endDate">End Date</label>
+  <input
+    type="date"
+    id="endDate"
+    [(ngModel)]="leaveData.endDate"
+    name="endDate"
+    [min]="leaveData.startDate || todayDate" 
+    [max]="getMaxEndDate()"
+    required
+  />
+</div>
+
+      </div>
+      
+      <!-- Show time fields if permission -->
+      <div *ngIf="isPermission">
+        <div class="form-group">
+          <label for="startTime">Start Time</label>
+          <input
+            type="time"
+            id="startTime"
+            [(ngModel)]="leaveData.startTime"
+            name="startTime"
+            required
+          />
+        </div>
+      
+        <div class="form-group">
+          <label for="endTime">End Time</label>
+          <input
+            type="time"
+            id="endTime"
+            [(ngModel)]="leaveData.endTime"
+            name="endTime"
+            required
+          />
+        </div>
+      </div>
+  
+      <div class="form-group">
+        <button type="submit" [disabled]="leaveForm.invalid">Submit</button>
+      </div>
+    </form>
+    
+    
+    </div>
+  
 
 <ng-template #loadingSSR>
   <div class="container">

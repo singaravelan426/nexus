@@ -1,143 +1,416 @@
-import { Component, OnInit } from '@angular/core';
-import { getDatabase, ref, push } from '@angular/fire/database';
-import { Auth } from '@angular/fire/auth';
-import { CommonModule, formatDate } from '@angular/common';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Auth, getAuth, onAuthStateChanged, signOut } from '@angular/fire/auth';
+import { getDatabase, ref, push, get, remove, set } from '@angular/fire/database';
+import { interval, Subscription } from 'rxjs';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { isPlatformBrowser } from '@angular/common';
-import { Inject, PLATFORM_ID } from '@angular/core';
-import { HeaderComponent } from '../header/header.component';
-
+import { Router } from '@angular/router';
+import { NgChartsModule } from 'ng2-charts';
+import { ChartData, ChartOptions } from 'chart.js';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver-es';
+import { NgZone } from '@angular/core';
+import { inject } from '@angular/core';
 
 @Component({
+  standalone: true,
   selector: 'app-work-tracker',
   templateUrl: './work-tracker.component.html',
   styleUrls: ['./work-tracker.component.css'],
-  imports: [
-    FormsModule, CommonModule,
-    HeaderComponent
-],
+  imports: [CommonModule, FormsModule, NgChartsModule]
 })
-export class WorkTrackerComponent implements OnInit {
-  projectTitle = '';
-  projectDesc = '';
-  startTime = '';
-  endTime = '';
-  duration = '';
-  isTracking = false;
-  startTimestamp = 0;
-  timerInterval: any;
-  currentTimer = '00:00:00';
-  userEmail = '';
-  currentDate = '';
-  currentTime = '';
+export class WorkTrackerComponent implements OnInit, OnDestroy {
+  private router = inject(Router);
+  private auth = inject(Auth);
 
-  isBrowser = false;
+  userEmail: string = '';
+  username: string = '';
+  userInitials: string = '';
+  profileImageUrl: string | null = null;
 
+  currentTimer: string = '00:00';
+  selectedLocation: string = '';
+  locationError: boolean = false;
+  showAlert: boolean = false;
+  isTimerRunning: boolean = false;
+  isLoading: boolean = true;
+  alertMessage: string = '';
+  totalDurationInSeconds: number = 0;
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object,private auth: Auth) {}
+  chartType: 'line' = 'line';
 
-  ngOnInit(): void {
-    this.isBrowser = isPlatformBrowser(this.platformId);
-  
-    if (this.isBrowser) {
-      this.getCurrentUserEmail();
-      this.updateDateTime();
-      setInterval(() => this.updateDateTime(), 1000);
+  chartData: ChartData<'line'> = {
+    labels: [],
+    datasets: [{
+      data: [],
+      label: 'Working Hours',
+      fill: false,
+      borderColor: 'blue',
+      tension: 0.1
+    }]
+  };
+
+  chartOptions: ChartOptions<'line'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        title: { display: true, text: 'Date' },
+        ticks: { maxRotation: 45, minRotation: 30 }
+      },
+      y: {
+        title: { display: true, text: 'Duration (mins)' },
+        suggestedMin: 0,
+        ticks: { stepSize: 1 }
+      }
+    },
+    plugins: {
+      legend: { position: 'top' }
     }
-  }
+  };
 
-  
+  private timerSub: Subscription | null = null;
+  private refreshSub: Subscription | null = null;
+  private secondsElapsed = 0;
+  private startTime: string = '';
+  private endTime: string = '';
+  private submittedAt: string = '';
+  avatarOption: string = '';
 
-  getCurrentUserEmail() {
-    this.auth.onAuthStateChanged(user => {
+
+  constructor(private cdr: ChangeDetectorRef, private ngZone: NgZone) {}
+
+  ngOnInit() {
+    onAuthStateChanged(this.auth, user => {
       if (user) {
-        this.userEmail = user.email || '';
+        this.ngZone.run(() => {
+          this.userEmail = user.email || '';
+          this.username = this.getUsername(this.userEmail);
+          this.userInitials = this.getInitials(this.userEmail);
+          this.loadWorkLogs();
+          this.loadProfilePicture(); // ✅ Load image
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        });
+      } else {
+        this.router.navigate(['/login']);
       }
     });
   }
 
-  updateDateTime() {
-    const now = new Date();
-    this.currentDate = formatDate(now, 'MMMM d, y', 'en-US');
-    this.currentTime = formatDate(now, 'hh:mm:ss a', 'en-US');
+  getUsername(email: string): string {
+    const name = email.split('@')[0];
+    return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
   }
 
-  startWork() {
-    this.isTracking = true;
-    this.startTimestamp = Date.now();
-    this.startTime = new Date(this.startTimestamp).toLocaleTimeString();
-
-    this.timerInterval = setInterval(() => {
-      const diff = Date.now() - this.startTimestamp;
-      this.currentTimer = this.formatDuration(diff);
-    }, 1000);
+  getInitials(email: string): string {
+    const name = email.split('@')[0];
+    const nameParts = name.split('.');
+    return nameParts.map(part => part.charAt(0).toUpperCase()).join('');
   }
 
-  endWork() {
-    this.isTracking = false;
-    const endTimestamp = Date.now();
-    clearInterval(this.timerInterval);
-    this.endTime = new Date(endTimestamp).toLocaleTimeString();
-
-    const totalDuration = endTimestamp - this.startTimestamp;
-    this.duration = this.formatDuration(totalDuration);
-  }
-
-  formatDuration(ms: number): string {
-    const seconds = Math.floor(ms / 1000);
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${this.pad(hrs)}:${this.pad(mins)}:${this.pad(secs)}`;
-  }
-
-  pad(num: number): string {
-    return num < 10 ? '0' + num : num.toString();
-  }
-
-  submitWork(){
-    if (!this.isBrowser) return;
-
-    if (!this.projectTitle.trim() || !this.projectDesc.trim()) {
-      alert('⚠️ Please enter both Project Title and Description.');
-      return;
-    }
-
-    if (!this.startTime || !this.endTime) {
-      alert('⚠️ Please start and end the work session before submitting.');
-      return;
-    }
-  
+  loadProfilePicture() {
     const db = getDatabase();
-    const workRef = ref(db, 'work-logs');
+    const imageRef = ref(db, `profile-images/${this.username}`);
+    get(imageRef).then(snapshot => {
+      if (snapshot.exists()) {
+        this.profileImageUrl = snapshot.val();
+      } else {
+        this.profileImageUrl = null;
+      }
+    });
+  }
+
+  onAvatarOptionChange() {
+    if (this.avatarOption === 'option1') {
+      // Trigger file input for upload
+      const fileInput = document.getElementById('avatarFileInput') as HTMLInputElement;
+      if (fileInput) {
+        fileInput.click(); // opens file dialog
+      }
+    } else if (this.avatarOption === 'option2') {
+      this.removeProfilePicture();
+    } else if (this.avatarOption === 'option3') {
+      this.logout();
+    }
   
-    const data = {
-      email: this.userEmail,
-      date: this.currentDate,
-      projectTitle: this.projectTitle,
-      projectDesc: this.projectDesc,
-      startTime: this.startTime,
-      endTime: this.endTime,
-      duration: this.duration,
-      submittedAt: formatDate(new Date(), 'MMM d, y, hh:mm:ss a', 'en-US')
+    // Reset selection after action
+    setTimeout(() => this.avatarOption = '', 100);
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      this.uploadProfilePicture(input.files[0]);
+    }
+  }
+
+  uploadProfilePicture(file: File) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64Image = reader.result as string;
+      const db = getDatabase();
+      const imageRef = ref(db, `profile-images/${this.username}`);
+      set(imageRef, base64Image).then(() => {
+        this.profileImageUrl = base64Image;
+        this.showSuccessAlert('✅ Profile picture uploaded!');
+      });
     };
-  
-    push(workRef, data)
+    reader.readAsDataURL(file);
+  }
+
+  removeProfilePicture() {
+    const db = getDatabase();
+    const imageRef = ref(db, `profile-images/${this.username}`);
+    remove(imageRef).then(() => {
+      this.profileImageUrl = null;
+      this.showSuccessAlert('🗑️ Profile picture removed.');
+    });
+  }
+
+
+  logout() {
+    const auth = getAuth();
+    signOut(auth)
       .then(() => {
-        alert('✅ Work submitted successfully!');
-        this.resetForm();
+        this.showSuccessAlert('👋 Logged out successfully.');
+        // Redirect to login page or home
+        window.location.href = '/login'; // adjust route if needed
       })
-      .catch(error => {
-        console.error('❌ Error submitting work:', error);
+      .catch((error) => {
+        console.error('Logout error:', error);
+        this.showSuccessAlert('❌ Logout failed.');
       });
   }
 
-  resetForm() {
-    this.projectTitle = '';
-    this.projectDesc = '';
-    this.startTime = '';
-    this.endTime = '';
-    this.duration = '';
-    this.currentTimer = '00:00:00';
+  loadWorkLogs() {
+    const db = getDatabase();
+    const logsRef = ref(db, 'work-logs');
+    get(logsRef).then(snapshot => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const userLogsByDate: { [dateKey: string]: number } = {};
+        let totalSeconds = 0;
+
+        for (const key in data) {
+          const log = data[key];
+          if (log.email === this.userEmail) {
+            const durationSeconds = this.durationToSeconds(log.duration);
+            const [day, month, year] = log.date.split('/');
+            const isoDate = `${year}-${month}-${day}`;
+
+            userLogsByDate[isoDate] = (userLogsByDate[isoDate] || 0) + durationSeconds;
+            totalSeconds += durationSeconds;
+          }
+        }
+
+        const sortedIsoDates = Object.keys(userLogsByDate).sort();
+        const labels: string[] = [];
+        const dataPoints: number[] = [];
+
+        for (const isoDate of sortedIsoDates) {
+          const [year, month, day] = isoDate.split('-');
+          labels.push(`${day}/${month}/${year}`);
+          dataPoints.push(+((userLogsByDate[isoDate] / 60).toFixed(2)));
+        }
+
+        this.chartData = {
+          labels,
+          datasets: [{
+            label: 'Working Hours',
+            data: dataPoints,
+            fill: false,
+            borderColor: 'blue',
+            tension: 0.1
+          }]
+        };
+
+        this.totalDurationInSeconds = totalSeconds;
+      } else {
+        this.chartData.labels = [];
+        this.chartData.datasets[0].data = [];
+        this.totalDurationInSeconds = 0;
+      }
+    });
+  }
+
+  durationToSeconds(duration: string): number {
+    const parts = duration.split(':').map(Number);
+    if (parts.length === 3) {
+      const [h, m, s] = parts;
+      return h * 3600 + m * 60 + s;
+    } else if (parts.length === 2) {
+      const [h, m] = parts;
+      return h * 3600 + m * 60;
+    }
+    return 0;
+  }
+
+  get totalDurationFormatted(): string {
+    const h = Math.floor(this.totalDurationInSeconds / 3600).toString().padStart(2, '0');
+    const m = Math.floor((this.totalDurationInSeconds % 3600) / 60).toString().padStart(2, '0');
+    const s = (this.totalDurationInSeconds % 60).toString().padStart(2, '0');
+    return `${h}:${m}:${s}`;
+  }
+
+  onToggleTimer(event: any) {
+    const isChecked = event.target.checked;
+
+    if (isChecked) {
+      if (!this.selectedLocation) {
+        this.locationError = true;
+        event.target.checked = false;
+        this.isTimerRunning = false;
+        return;
+      }
+
+      const confirmStart = window.confirm('Ready to begin your workday? Click Confirm to start the timer.');
+      if (confirmStart) {
+        this.locationError = false;
+        this.isTimerRunning = true;
+        this.startWorkTimer();
+      } else {
+        event.target.checked = false;
+        this.isTimerRunning = false;
+      }
+    } else {
+      const confirmStop = window.confirm('All Done? Click Confirm to Punch Out.');
+      if (confirmStop) {
+        this.isTimerRunning = false;
+        this.stopWorkTimerAndSave();
+      } else {
+        event.target.checked = true;
+        this.isTimerRunning = true;
+      }
+    }
+  }
+
+  startWorkTimer() {
+    this.secondsElapsed = 0;
+    this.startTime = this.formatDate(new Date());
+    this.timerSub = interval(1000).subscribe(() => {
+      this.secondsElapsed++;
+      this.currentTimer = this.formatTime(this.secondsElapsed);
+    });
+  }
+
+  stopWorkTimerAndSave() {
+    this.endTime = this.formatDate(new Date());
+    this.submittedAt = this.formatDate(new Date());
+
+    if (!this.selectedLocation) {
+      this.locationError = true;
+      return;
+    }
+
+    if (this.timerSub) this.timerSub.unsubscribe();
+
+    const db = getDatabase();
+    const workLog = {
+      email: this.userEmail,
+      startTime: this.startTime,
+      endTime: this.endTime,
+      duration: this.currentTimer,
+      location: this.selectedLocation,
+      date: this.formatDate(new Date(), true),
+      submittedAt: this.submittedAt
+    };
+
+    const logsRef = ref(db, 'work-logs');
+    push(logsRef, workLog)
+      .then(() => {
+        this.showSuccessAlert('✅ Work log saved successfully!');
+        this.loadWorkLogs();
+      })
+      .catch(err => {
+        console.error('Error saving log:', err);
+        this.showSuccessAlert('❌ Error saving work log.');
+      });
+
+    this.currentTimer = '00:00';
+  }
+
+  showSuccessAlert(message: string) {
+    this.alertMessage = message;
+    this.showAlert = true;
+    setTimeout(() => this.showAlert = false, 3000);
+  }
+
+  formatDate(date: Date, isDateOnly: boolean = false): string {
+    const options: Intl.DateTimeFormatOptions = {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    };
+    if (isDateOnly) {
+      delete options.hour;
+      delete options.minute;
+      delete options.hour12;
+    }
+    return new Intl.DateTimeFormat('en-GB', options).format(date);
+  }
+
+  formatTime(seconds: number): string {
+    const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+    const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+    return `${h}:${m}`;
+  }
+
+  goToLeavePage() {
+    this.router.navigate(['/leave']);
+  }
+
+  ngOnDestroy() {
+    if (this.timerSub) this.timerSub.unsubscribe();
+    if (this.refreshSub) this.refreshSub.unsubscribe();
+  }
+
+  downloadExcelReport() {
+    const db = getDatabase();
+    const logsRef = ref(db, 'work-logs');
+    get(logsRef).then(snapshot => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const userLogs = [];
+
+        for (const key in data) {
+          const log = data[key];
+          if (log.email === this.userEmail) {
+            userLogs.push({
+              Date: log.date,
+              'Start Time': log.startTime,
+              'End Time': log.endTime,
+              Duration: log.duration,
+              Location: log.location,
+            });
+          }
+        }
+
+        if (userLogs.length === 0) {
+          this.showSuccessAlert('⚠️ No work logs available for download.');
+          return;
+        }
+
+        const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(userLogs);
+        const workbook: XLSX.WorkBook = {
+          Sheets: { 'Work Logs': worksheet },
+          SheetNames: ['Work Logs']
+        };
+
+        const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+        const blob: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+        const fileName = `WorkLogs-${this.username}-${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+        saveAs(blob, fileName);
+      } else {
+        this.showSuccessAlert('⚠️ No work logs found.');
+      }
+    }).catch(error => {
+      console.error('Error fetching logs:', error);
+      this.showSuccessAlert('❌ Failed to generate report.');
+    });
   }
 }

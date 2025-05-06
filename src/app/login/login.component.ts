@@ -24,7 +24,7 @@ export class LoginComponent {
     const auth = getAuth();
     signInWithEmailAndPassword(auth, this.email, this.password)
       .then((userCredential) => {
-        this.router.navigate(['/dashboard']); 
+        this.router.navigate(['/worklog']); 
       })
       .catch((error) => {
         console.error(error);

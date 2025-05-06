@@ -1,65 +1,117 @@
-<app-header></app-header>
-<div *ngIf="isBrowser; else loadingSSR">
-    <div class="container">
-      <div class="header">
-        <h1>🛠️ Employee Work Tracker</h1>
-        <div class="datetime">
-          <span class="date">{{ currentDate }}</span>
-          <span class="time">{{ currentTime }}</span>
-          <span class="email">👤 {{ userEmail }}</span>
+  <!-- Success/Error Message Alert -->
+  <div *ngIf="showAlert" class="alert alert-success text-center small mt-2" role="alert">
+    {{ alertMessage }}
+  </div>
+  <div *ngIf="!isLoading">
+   
+
+  <div class="card shadow-sm p-3 mb-5 bg-white rounded" style="max-width: 450px; margin: auto;">
+    <!-- Logo -->
+    <div class="text-end mb-2">
+      <img src="assets/logo.png" alt="Logo" style="width: 100px; height: auto;">
+    </div>
+  
+
+    <!-- Timer + User -->
+    <div class="d-flex justify-content-between align-items-center mb-0">
+      
+      <!-- User Avatar (Profile or Initials) -->
+<div class="position-relative">
+  <label for="profileInput" class="d-block">
+    <div
+      class="bg-secondary text-white rounded-circle d-flex justify-content-center align-items-center overflow-hidden"
+      style="width: 110px; height: 110px; font-size: 3rem;"
+      title="Click to upload/remove profile picture"
+    >
+      <img *ngIf="profileImageUrl" [src]="profileImageUrl" alt="Profile" class="w-100 h-100 object-fit-cover">
+      <span *ngIf="!profileImageUrl">{{ userInitials }}</span>
+    </div>
+  </label>
+</div>
+
+      <div class="d-flex align-items-center" style="gap:20px;">
+        <div style="text-align: left;">
+          <p style="font-size: 2rem; margin-bottom: 0;"><strong>{{ currentTimer }}</strong></p>
+        </div>
+
+        <div class="form-check form-switch m-0" style="transform: scale(1.5);">
+          <input class="form-check-input" type="checkbox" id="liveTimerToggle" (change)="onToggleTimer($event)">
+          <label class="form-check-label" for="liveTimerToggle"></label>
         </div>
       </div>
-  
-      <form (ngSubmit)="submitWork()" #workForm="ngForm" class="form">
-        <input
-          type="text"
-          name="projectTitle"
-          [(ngModel)]="projectTitle"
-          placeholder="📌 Project Title"
-          #titleInput="ngModel"
-          required
-        />
-        <div *ngIf="titleInput.invalid && titleInput.touched" class="error">
-          ⚠️ Project title is required.
-        </div>
-        <textarea
-          name="projectDesc"
-          [(ngModel)]="projectDesc"
-          placeholder="📝 Project Description"
-          #descInput="ngModel"
-          required
-        ></textarea>
+    </div>
 
-        <div *ngIf="descInput.invalid && descInput.touched" class="error">
-          ⚠️ Project description is required.
-        </div>
-  
-        <div class="timing-controls">
-          <button type="button" (click)="startWork()" [disabled]="isTracking">
-            ▶️ Start Work
-          </button>
-          <button type="button" (click)="endWork()" [disabled]="!isTracking">
-            ⏹️ End Work
-          </button>
-        </div>
-  
-        <div class="timing">
-          <p>🕒 Start Time: {{ startTime }}</p>
-          <p>🕔 End Time: {{ endTime }}</p>
-          <p>⏱️ Live Timer: <strong>{{ currentTimer }}</strong></p>
-          <p *ngIf="duration">✅ Total Duration: <strong>{{ duration }}</strong></p>
-        </div>
-  
-        <button type="submit" class="submit-btn" 
-        >📤 Submit</button>
-      </form>
+
+    <div class="mt-0">
+      <select id="avatarDropdown" class="form-select" style="width: 110px;height: 35px;" [(ngModel)]="avatarOption" (change)="onAvatarOptionChange()">
+        <option value="" disabled selected>Select</option>
+        <option value="option1">Uoload Picture </option>
+        <option value="option2">Remove Picture</option>
+        <option value="option3">SingOut</option>
+      </select>
+    
+      <!-- Hidden File Input for Upload -->
+      <input type="file" id="avatarFileInput" (change)="onFileSelected($event)" accept="image/*" hidden>
+    </div>
+
+    <!-- Location + Username -->
+    <div class="d-flex align-items-center justify-content-between mb-2 mt-2">
+      <div>
+        <h5 class="mb-0">{{ username }}</h5>
+      </div>
+      <div class="text-end">
+        <label for="locationSelect" class="form-label">Location</label>
+        <select id="locationSelect" class="form-select d-inline-block" style="width: 120px;"
+          [(ngModel)]="selectedLocation" [disabled]="isTimerRunning">
+          <option value="" disabled>Location</option>
+          <option value="on-site">ON-SITE</option>
+          <option value="off-site">OFF-SITE</option>
+        </select>
+      
+      </div>
+    </div>
+
+    <!-- Leave Request -->
+    <div class="mb-2 mt-2">
+      <div class="d-flex align-items-center justify-content-between">
+        <h4 class="mb-0">Leave Request</h4>
+        <button class="btn btn-outline-primary" (click)="goToLeavePage()" [disabled]="isTimerRunning">
+          Apply
+        </button>
+      </div>
+    </div>
+
+    <!-- Work Report -->
+    <h6>Work Report</h6>
+    <div class="mb-2">
+      <div class="bg-light rounded p-3 text-center" style="height: 300px;">
+        <canvas baseChart
+        [data]="chartData"
+        [options]="chartOptions"
+        [type]="chartType">
+      </canvas>
+      <div class="d-flex justify-content-around  text-muted small">
+        <div>Working Hours</div>
+        <div>Ideal Time</div>
+        <div>Leave</div>
+      </div>
+      </div>
+      
+    </div>
+
+    <div class="d-flex justify-content-center mb-2">
+      <button class="btn btn-sm" style="background-color: #ccd82c; color: #000;" (click)="downloadExcelReport()">
+  Print Report    </button>
+    </div>
+
+    <!-- Location Instruction -->
+    <div *ngIf="locationError" class="mt-3">
+      <div class="alert bg-dark text-white text-start small" role="alert">
+        Please select your location (On-site/Off-site).<br>
+        This is mandatory to proceed.
+      </div>
     </div>
   </div>
-  
-  <ng-template #loadingSSR>
-    <div class="container">
-      <h2>🕗 Loading tracker...</h2>
-      <p>This page is not fully interactive yet. Please wait or view in the browser.</p>
-    </div>
-  </ng-template>
+
+
   

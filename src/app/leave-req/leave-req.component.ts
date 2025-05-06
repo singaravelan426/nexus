@@ -1,9 +1,10 @@
-import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
-import { getDatabase, ref, push } from '@angular/fire/database';
+import { Component, OnInit, Inject, PLATFORM_ID, inject } from '@angular/core';
+import { getDatabase, ref, push, get } from '@angular/fire/database';
 import { Auth } from '@angular/fire/auth';
 import { CommonModule, formatDate, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HeaderComponent } from '../header/header.component';
+import { Router } from '@angular/router';
+import { Database } from '@angular/fire/database';
 
 @Component({
   selector: 'app-leave-req',
@@ -12,10 +13,11 @@ import { HeaderComponent } from '../header/header.component';
   standalone: true,
   imports: [
     FormsModule, CommonModule,
-    HeaderComponent
   ],
 })
 export class LeaveReqComponent implements OnInit {
+
+  private router = inject(Router);
   leaveData = {
     employeeName: '',
     reason: '',
@@ -29,12 +31,19 @@ export class LeaveReqComponent implements OnInit {
   userEmail = '';
   currentDate = '';
   currentTime = '';
-
+  userInitials: string = '';
+  currentTimer: string = '00:00:00';
+  isTimerRunning: boolean = false;
   isBrowser = false;
   todayDate: string = '';
   isPermission = false;
+  profileImageUrl: string | null = null;
+  username: string = '';
+  private db: Database; // Injected database instance
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object, private auth: Auth) {}
+  constructor(@Inject(PLATFORM_ID) private platformId: Object, private auth: Auth,db: Database) {
+    this.db = db; // Store injected Database instance
+  }
 
   ngOnInit(): void {
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -49,13 +58,39 @@ export class LeaveReqComponent implements OnInit {
     }
   }
 
+  getInitials(email: string): string {
+    const name = email.split('@')[0];
+    const nameParts = name.split('.');
+    return nameParts.map(part => part.charAt(0).toUpperCase()).join('');
+  }
+
   // Get the current user's email
   getCurrentUserEmail() {
     this.auth.onAuthStateChanged(user => {
       if (user) {
         this.userEmail = user.email || '';
-        this.leaveData.employeeName = this.userEmail.split('@')[0]; // Auto-fill name as email prefix
+        this.leaveData.employeeName = this.userEmail.split('@')[0];
+        this.username = this.userEmail.split('@')[0]; // ✅ Set username here
+        this.loadProfilePicture(); // ✅ Now call here after username is set
+
+        this.userInitials = this.getInitials(this.userEmail);
       }
+    });
+  }
+
+  loadProfilePicture() {
+    console.log('Fetching image for:', this.username); 
+    const imageRef = ref(this.db, `profile-images/${this.username}`);
+    get(imageRef).then(snapshot => {
+      if (snapshot.exists()) {
+        console.log('Image found');
+        this.profileImageUrl = snapshot.val();
+      } else {
+        console.log('No image found');
+        this.profileImageUrl = null;
+      }
+    }).catch(error => {
+      console.error('Error fetching profile image:', error);
     });
   }
 
@@ -104,6 +139,7 @@ export class LeaveReqComponent implements OnInit {
       .then(() => {
         alert('✅ Leave request submitted successfully!');
         this.resetForm();
+        this.router.navigate(['/leave']);
       })
       .catch(error => {
         console.error('❌ Error submitting leave request:', error);
@@ -142,4 +178,12 @@ export class LeaveReqComponent implements OnInit {
     };
     this.isPermission = false;
   }
+  getMaxEndDate(): string {
+    if (!this.leaveData.startDate) return '';
+    const start = new Date(this.leaveData.startDate);
+    const max = new Date(start);
+    max.setDate(start.getDate() + 2); // Max 2 days after start
+    return max.toISOString().split('T')[0];
+  }
+  
 }

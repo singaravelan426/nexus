@@ -1,33 +1,36 @@
-
-  <div class="body">
-<div class="login-card">
-  <div class="head">
-    <img src="asset/logo.png" alt="Nexus Logo" class="logo" />
-  </div>
-  
-    <h4>🔐 Employee Login</h4>
-  
+<div class="body">
+  <div class="login-card">
+    <div class="head mb-4">
+      <img src="assets/logo.png" alt="Nexus Logo" class="logo" />
+    </div>
     <form (ngSubmit)="login()" #loginForm="ngForm">
-      <input
-        type="email"
-        name="email"
-        [(ngModel)]="email"
-        placeholder="📧 Email" 
-        required
-      />
-      <input
-        type="password"
-        name="password"
-        [(ngModel)]="password"
-        placeholder="🔑 Password"
-        required
-      />
-  
+     
+      <div class="input-wrapper">
+        <i class="fa-solid fa-envelope icon"></i>
+        <input
+          type="email"
+          name="email"
+          [(ngModel)]="email"
+          placeholder="Email"
+          required
+        />
+      </div>
+      
+      <div class="input-wrapper">
+        <i class="fa-solid fa-lock icon"></i>
+        <input
+          type="password"
+          name="password"
+          [(ngModel)]="password"
+          placeholder="Password"
+          required
+        />
+      </div>
+      
+    
       <button type="submit">Login</button>
     </form>
-  
-    <p class="note">Use your company email to log in and track your work.</p>
+    
+    <p class="note">Use Your Official Mail Id To Login</p>
   </div>
 </div>
-
-  
