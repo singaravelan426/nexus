@@ -1,24 +1,20 @@
-
-
-import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component } from '@angular/core';
+import {  OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { getAuth } from 'firebase/auth';
 import { getDatabase, ref, get, set, push, remove, onValue } from 'firebase/database';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
 @Component({
-  selector: 'app-dashboard',
-  templateUrl: './dashboard.component.html',
+  selector: 'app-add-admin',
+  standalone: true,
+  imports: [CommonModule, FormsModule,RouterModule],
+  templateUrl: './add-admin.component.html',
+  styleUrls: ['./add-admin.component.css'],
   
-  styleUrl: './dashboard.component.css',
- 
-  imports: [
-    CommonModule ,FormsModule,RouterModule
-  ],
 })
-export class DashboardComponent implements OnInit {
-  isAdmin = false;
+export class AddAdminComponent implements OnInit  {
   userEmail: string | null = null;
   newAdminEmail: string = '';
   adminEmails: string[] = [];
@@ -28,13 +24,14 @@ export class DashboardComponent implements OnInit {
     const auth = getAuth();
     const user = auth.currentUser;
 
+    // Check if the user is logged in to proceed
     if (user && user.email) {
       this.userEmail = user.email;
-      this.checkAdminStatus(user.email);
+      this.loadAdminEmails();
     }
   }
 
-  checkAdminStatus(email: string) {
+  loadAdminEmails() {
     const db = getDatabase();
     const adminRef = ref(db, 'admin-list');
 
@@ -49,9 +46,6 @@ export class DashboardComponent implements OnInit {
           this.adminEmails.push(adminEmail);
           this.adminKeys[adminEmail] = key;
         }
-        this.isAdmin = this.adminEmails.includes(email);
-      } else {
-        this.isAdmin = false;
       }
     });
   }
@@ -63,6 +57,7 @@ export class DashboardComponent implements OnInit {
     const adminRef = ref(db, 'admin-list');
     push(adminRef, this.newAdminEmail.trim()).then(() => {
       this.newAdminEmail = '';
+      this.loadAdminEmails(); // Refresh the list after adding
     });
   }
 
@@ -71,7 +66,9 @@ export class DashboardComponent implements OnInit {
     const key = this.adminKeys[email];
     if (key) {
       const emailRef = ref(db, `admin-list/${key}`);
-      remove(emailRef);
+      remove(emailRef).then(() => {
+        this.loadAdminEmails(); // Refresh the list after removal
+      });
     }
   }
 }

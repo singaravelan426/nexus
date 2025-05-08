@@ -1,13 +1,14 @@
 .container {
   max-width: 900px;
-  margin: 2rem auto;
+  margin:auto;
   padding: 1rem;
+  background-color: white;
 }
 
 .title {
   text-align: center;
-  font-size: 2rem;
-  margin-bottom: 2rem;
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
   color: #333;
 }
 
@@ -24,6 +25,7 @@
   margin-bottom: 1.5rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transition: transform 0.2s ease;
+  
 }
 
 .leave-card:hover {

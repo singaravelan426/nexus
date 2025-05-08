@@ -11,13 +11,15 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver-es';
 import { NgZone } from '@angular/core';
 import { inject } from '@angular/core';
+import { RouterModule } from '@angular/router';
+
 
 @Component({
   standalone: true,
   selector: 'app-work-tracker',
   templateUrl: './work-tracker.component.html',
   styleUrls: ['./work-tracker.component.css'],
-  imports: [CommonModule, FormsModule, NgChartsModule]
+  imports: [CommonModule, FormsModule, NgChartsModule,RouterModule]
 })
 export class WorkTrackerComponent implements OnInit, OnDestroy {
   private router = inject(Router);
@@ -28,7 +30,7 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
   userInitials: string = '';
   profileImageUrl: string | null = null;
 
-  currentTimer: string = '00:00';
+  currentTimer: string = '00h:00m';
   selectedLocation: string = '';
   locationError: boolean = false;
   showAlert: boolean = false;
@@ -76,7 +78,7 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
   private endTime: string = '';
   private submittedAt: string = '';
   avatarOption: string = '';
-
+  isAdmin = false;
 
   constructor(private cdr: ChangeDetectorRef, private ngZone: NgZone) {}
 
@@ -87,6 +89,7 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
           this.userEmail = user.email || '';
           this.username = this.getUsername(this.userEmail);
           this.userInitials = this.getInitials(this.userEmail);
+          this.checkAdminStatus(this.userEmail);
           this.loadWorkLogs();
           this.loadProfilePicture(); // ✅ Load image
           this.isLoading = false;
@@ -96,7 +99,9 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
         this.router.navigate(['/login']);
       }
     });
-  }
+  }  
+
+  
 
   getUsername(email: string): string {
     const name = email.split('@')[0];
@@ -107,6 +112,24 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
     const name = email.split('@')[0];
     const nameParts = name.split('.');
     return nameParts.map(part => part.charAt(0).toUpperCase()).join('');
+  }
+
+  checkAdminStatus(email: string) {
+    const db = getDatabase();
+    const adminListRef = ref(db, 'admin-list');
+
+    get(adminListRef).then((snapshot) => {
+      if (snapshot.exists()) {
+        const adminEmails: string[] = Object.values(snapshot.val());
+        this.isAdmin = adminEmails.includes(email);
+      } else {
+        console.log("No admin list found.");
+        this.isAdmin = false;
+      }
+    }).catch((error) => {
+      console.error("Error checking admin status:", error);
+      this.isAdmin = false;
+    });
   }
 
   loadProfilePicture() {
@@ -122,17 +145,33 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
   }
 
   onAvatarOptionChange() {
-    if (this.avatarOption === 'option1') {
+    if (this.avatarOption === 'option3') {
       // Trigger file input for upload
       const fileInput = document.getElementById('avatarFileInput') as HTMLInputElement;
       if (fileInput) {
         fileInput.click(); // opens file dialog
       }
-    } else if (this.avatarOption === 'option2') {
+    }
+    else if (this.avatarOption === 'option1') {
+      this.router.navigate(['/notification']);
+    }
+    else if (this.avatarOption === 'option2') {
+      this.router.navigate(['/add-admin']);
+    }
+    else if (this.avatarOption === 'option5') {
       this.removeProfilePicture();
-    } else if (this.avatarOption === 'option3') {
+    } 
+    else if (this.avatarOption === 'option6') {
+      this.router.navigate(['/status']);
+    }
+    
+    else if (this.avatarOption === 'option7') {
       this.logout();
     }
+    
+    
+    
+    
   
     // Reset selection after action
     setTimeout(() => this.avatarOption = '', 100);
@@ -356,8 +395,9 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
   formatTime(seconds: number): string {
     const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
     const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
-    return `${h}:${m}`;
+    return `${h}h:${m}m`;
   }
+  
 
   goToLeavePage() {
     this.router.navigate(['/leave']);

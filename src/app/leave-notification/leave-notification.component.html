@@ -1,90 +1,85 @@
-<app-header></app-header>
+<div class="card shadow-sm p-2 mb-1  rounded" style="max-width: 540px; margin: auto; background-color: #d4d4d3;" >
+  <div class="card shadow-sm p-3 mb-0 bg-white rounded" style="max-width:400;">
+
+    <div class="text-end mb-1">
+      <a [routerLink]="['/worklog']">
+        <img src="assets/logo.png" alt="Logo" style="width: 100px; height: auto; cursor: pointer;">
+      </a>
+    </div>
 
 <div class="container">
-  <h1 class="page-title">📝 Admin Leave Requests</h1>
+  <h3 class="page-title text-start" style="font-weight: bold; font-family: sans-serif;">Leave Approvals</h3>
 
   <!-- Tabs -->
-  <div class="tabs">
-    <button (click)="selectedTab = 'pending'" [class.active]="selectedTab === 'pending'" class="tab-button">Pending</button>
-    <button (click)="selectedTab = 'approved'" [class.active]="selectedTab === 'approved'" class="tab-button">Approved</button>
-    <button (click)="selectedTab = 'rejected'" [class.active]="selectedTab === 'rejected'" class="tab-button">Rejected</button>
-  </div>
+<div class="tabs">
+  <button (click)="selectedTab = 'all'" [class.active]="selectedTab === 'all'" class="tab-button">All</button>
+  <button (click)="selectedTab = 'pending'" [class.active]="selectedTab === 'pending'" class="tab-button">Pending</button>
+  <button (click)="selectedTab = 'approved'" [class.active]="selectedTab === 'approved'" class="tab-button">Approved</button>
+  <button (click)="selectedTab = 'rejected'" [class.active]="selectedTab === 'rejected'" class="tab-button">Rejected</button>
+</div>
 
-  <!-- Pending Requests -->
-  <div *ngIf="selectedTab === 'pending'" class="request-section">
-    <h2 class="section-title">🕒 Pending Requests</h2>
-    <div *ngFor="let request of pendingRequests" class="request-card">
-      <div class="card-header">
-        <h3>{{ request.employeeName }}</h3>
-        <span class="status-badge pending">{{ request.status | uppercase }}</span>
+<!-- Requests List -->
+<div class="request-section pt-1">
+
+  <div *ngFor="let request of getRequestsForSelectedTab()" class="request-card">
+    <div class="card-header mt-1">
+      <h3>{{ request.employeeName }}</h3>
+      <span class="status-badge {{ request.status }}">{{ request.status | uppercase }}</span>
+    </div>
+    <div class="card-body pt-1 pb-1">
+      
+
+      <div *ngIf="request.type === 'Leave'">
+        <p style="font-weight: bold; font-family: sans-serif;">{{ request.startDate }} to {{ request.endDate }}</p>
       </div>
-      <div class="card-body">
-        <p><strong>Reason:</strong> {{ request.reason }}</p>
-        <p><strong>Request Type:</strong> {{ request.type }}</p>
 
-        <div *ngIf="request.type === 'Leave'">
-          <p><strong>Start:</strong> {{ request.startDate }} | <strong>End:</strong> {{ request.endDate }}</p>
-        </div>
-        
-        <div *ngIf="request.type === 'Permission'">
-          <p><strong>Start:</strong> {{ request.startTime }} | <strong>End:</strong> {{ request.endTime }}</p>
-        </div>
-        <p><strong>Submitted:</strong> {{ request.submittedAt }}</p>
-        <textarea [(ngModel)]="request.adminCommentInput" placeholder="Write a comment..." rows="3"></textarea>
-        <div class="action-buttons">
-          <button (click)="updateStatus(request.key, 'approved', request.adminCommentInput)" class="approve-btn">✅ Approve</button>
-          <button (click)="updateStatus(request.key, 'rejected', request.adminCommentInput)" class="reject-btn">❌ Reject</button>
-        </div>
+     
+      
+      <div *ngIf="request.type === 'Permission'">
+        <p style="font-weight: bold; font-family: sans-serif;"> {{ request.startTime }} to {{ request.endTime }}</p>
+      </div>
+
+      <p><strong>Request Type:</strong> {{ request.type }}</p>
+
+      <div class="card-header pt-0 pb-0" style="margin-left: 400px; justify-content: center; cursor: pointer;" 
+      (click)="viewDetails(request)">
+        <i class="fa-solid fa-chevron-right float-end">
+        </i>
       </div>
     </div>
+    
+
   </div>
+</div>
 
-  <!-- Approved Requests -->
-  <div *ngIf="selectedTab === 'approved'" class="request-section">
-    <h2 class="section-title">✅ Approved Requests</h2>
-    <div *ngFor="let request of approvedRequests" class="request-card">
-      <div class="card-header">
-        <h3>{{ request.employeeName }}</h3>
-        <span class="status-badge approved">{{ request.status | uppercase }}</span>
-      </div>
-      <div class="card-body">
-        <p><strong>Reason:</strong> {{ request.reason }}</p>
-        <p><strong>Request Type:</strong> {{ request.type }}</p>
+ 
 
-        <div *ngIf="request.type === 'Leave'">
-          <p><strong>Start:</strong> {{ request.startDate }} | <strong>End:</strong> {{ request.endDate }}</p>
-        </div>
-        
-        <div *ngIf="request.type === 'Permission'">
-          <p><strong>Start:</strong> {{ request.startTime }} | <strong>End:</strong> {{ request.endTime }}</p>
-        </div>
-        <p><strong>Admin Comment:</strong> {{ request.adminComment }}</p>
-      </div>
-    </div>
-  </div>
+</div>
 
-  <!-- Rejected Requests -->
-  <div *ngIf="selectedTab === 'rejected'" class="request-section">
-    <h2 class="section-title">❌ Rejected Requests</h2>
-    <div *ngFor="let request of rejectedRequests" class="request-card">
-      <div class="card-header">
-        <h3>{{ request.employeeName }}</h3>
-        <span class="status-badge rejected">{{ request.status | uppercase }}</span>
-      </div>
-      <div class="card-body">
-        <p><strong>Reason:</strong> {{ request.reason }}</p>
-        
-        <p><strong>Request Type:</strong> {{ request.type }}</p>
 
-        <div *ngIf="request.type === 'Leave'">
-          <p><strong>Start:</strong> {{ request.startDate }} | <strong>End:</strong> {{ request.endDate }}</p>
-        </div>
-        
-        <div *ngIf="request.type === 'Permission'">
-          <p><strong>Start:</strong> {{ request.startTime }} | <strong>End:</strong> {{ request.endTime }}</p>
-        </div>
-        <p><strong>Admin Comment:</strong> {{ request.adminComment }}</p>
-      </div>
-    </div>
-  </div>
+<!-- Pagination Controls -->
+<div class="pagination text-center mt-1">
+  <button 
+    (click)="currentPage = currentPage - 1" 
+    [disabled]="currentPage === 1"
+    class="btn btn-outline-primary btn-sm me-1">
+    Prev
+  </button>
+
+  <span>Page {{currentPage}} of {{getTotalPages()}}</span>
+
+  <button 
+    (click)="currentPage = currentPage + 1" 
+    [disabled]="currentPage >= getTotalPages()"
+    class="btn btn-outline-primary btn-sm ms-1 ">
+    Next
+  </button>
+</div>
+
+
+
+  
+</div>
+
+
 </div>

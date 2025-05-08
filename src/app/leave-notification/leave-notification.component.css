@@ -2,7 +2,7 @@
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 5px;
     font-family: 'Arial', sans-serif;
   }
   
@@ -10,7 +10,7 @@
   .page-title {
     font-size: 2rem;
     color: #333;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     text-align: center;
   }
   
@@ -22,14 +22,12 @@
   }
   
   .tab-button {
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    padding: 10px 20px;
-    margin: 0 5px;
-    font-size: 1rem;
+    margin: 4px;
+    padding: 6px 12px;
+    border: none;
+    background-color: #eee;
     cursor: pointer;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
+    border-radius: 4px;
   }
   
   .tab-button:hover {
@@ -37,13 +35,14 @@
   }
   
   .tab-button.active {
-    background-color: #4CAF50;
+    background-color: #007bff;
     color: white;
   }
   
   /* Section for each tab */
   .request-section {
-    margin-top: 20px;
+    margin-top: 10px;
+    
   }
   
   /* Title for each section (Pending, Approved, Rejected) */
@@ -52,6 +51,10 @@
     margin-bottom: 20px;
     text-align: center;
     color: #444;
+  }
+
+  .card-body{
+    padding-bottom: 10px;
   }
   
   /* Card for each leave request */
@@ -73,7 +76,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    
   }
   
   .card-header h3 {

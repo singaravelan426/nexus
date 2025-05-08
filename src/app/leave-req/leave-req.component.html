@@ -1,40 +1,41 @@
-<div class="card shadow-sm p-2 mb-3  rounded" style="max-width: 450px; margin: auto; background-color: #d4d4d3;" >
+<div class="card shadow-sm p-2 mb-3  rounded" style="max-width: 490px;margin: auto; background-color: #d4d4d3;" >
  
   <form (ngSubmit)="submitLeave()" #leaveForm="ngForm" class="leave-form" style="background-color:white;">
       <!-- Logo -->
       <div class="text-end mb-2">
-        <img src="assets/logo.png" alt="Logo" style="width: 100px; height: auto;">
+        <a [routerLink]="['/worklog']">
+          <img src="assets/logo.png" alt="Logo" style="width: 100px; height: auto; cursor: pointer;">
+        </a>
       </div>
      <!-- Timer + User -->
-  <div class="d-flex justify-content-between align-items-center mb-2">
-    
-    <div class="bg-secondary text-white rounded-circle d-flex justify-content-center align-items-center"
-      style="width: 80px; height: 80px; font-size: 1.5rem;">
-      <label for="profileInput" class="d-block">
-        <div
-          class="bg-secondary text-white rounded-circle d-flex justify-content-center align-items-center overflow-hidden"
-          style="width: 110px; height: 110px; font-size: 3rem; cursor: pointer;"
-          title="Click to upload/remove profile picture"
-        >
-          <img *ngIf="profileImageUrl" [src]="profileImageUrl" alt="Profile" class="w-100 h-100 object-fit-cover">
-          <span *ngIf="!profileImageUrl">{{ userInitials }}</span>
-        </div>
-      </label>
-    </div>
-
-    <div class="d-flex align-items-center" style="gap:20px;">
-      <div style="text-align: left;">
-        <p style="font-size: 2rem; margin-bottom: 0;"><strong>{{ currentTimer }}</strong></p>
-      </div>
-
-      <div class="form-check form-switch m-0" style="transform: scale(1.5);">
-        <input class="form-check-input" type="checkbox" id="liveTimerToggle">
-        <label class="form-check-label" for="liveTimerToggle"></label>
-      </div>
-    </div>
-  </div>
+     <div class="d-flex justify-content-between align-items-center mb-0" style="padding-left: 0;">
   
-      <div class="form-group">
+      <!-- User Avatar (Profile or Initials) -->
+      <div class="position-relative" style="padding-left: 0;">
+        <label for="profileInput" class="d-block">
+          <div
+            class="bg-secondary text-white rounded-circle d-flex justify-content-center align-items-center overflow-hidden"
+            style="width: 110px; height: 110px; font-size: 3rem;"
+            title="Click to upload/remove profile picture"
+          >
+            <img *ngIf="profileImageUrl" [src]="profileImageUrl" alt="Profile" class="w-100 h-100 object-fit-cover">
+            <span *ngIf="!profileImageUrl">{{ userInitials }}</span>
+          </div>
+        </label>
+      </div>
+    </div>
+
+
+    <!--Username -->
+    <div class="d-flex align-items-center justify-content-between mb-1 mt-1">
+      <div>
+        <h5 class="mb-0">{{ username }}</h5>
+      </div>
+    </div>
+
+
+  
+      <div class="form-group pt-3">
         <label for="reason">Reason</label>
         <textarea
           id="reason"

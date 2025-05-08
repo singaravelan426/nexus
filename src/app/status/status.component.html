@@ -1,19 +1,26 @@
-<app-header></app-header>
+<div class="card shadow-sm p-2 mb-1  rounded" style="max-width: 540px; margin: auto; background-color: #d4d4d3;" >
 
 <div class="container">
-  <h1 class="title">Your Leave Request Status</h1>
 
-  <div *ngIf="leaveRequests.length === 0" class="empty-message">
-    <p>🗒️ No leave requests found.</p>
+  <div class="text-end mb-1">
+    <a [routerLink]="['/worklog']">
+      <img src="assets/logo.png" alt="Logo" style="width: 100px; height: auto; cursor: pointer;">
+    </a>
   </div>
 
-  <div *ngFor="let leave of leaveRequests" class="leave-card">
-    <div class="card-header">
+  <h6 class="title pt-1">Leave Request Status</h6>
+
+  <div *ngIf="leaveRequests.length === 0" class="empty-message">
+    <p>No leave requests found.</p>
+  </div>
+
+  <div *ngFor="let leave of paginatedLeaveRequests" class="leave-card pt-2 pb-1">
+    <div class="card-header pt-1 pb-1">
       <h3>{{ leave.employeeName }}</h3>
       <span class="status-badge" [ngClass]="leave.status">{{ leave.status | uppercase }}</span>
     </div>
 
-    <div class="card-body">
+    <div class="card-body pt-1 pb-0">
       <p><strong>Reason:</strong> {{ leave.reason }}</p>
       <p><strong>Request Type:</strong> {{ leave.type }}</p>
 
@@ -24,13 +31,21 @@
 <div *ngIf="leave.type === 'Permission'">
   <p><strong>From:</strong> {{ leave.startTime }} <strong>To:</strong> {{ leave.endTime }}</p>
 </div>
-      <div *ngIf="leave.adminComment">
+      <div *ngIf="leave.adminComment" >
         <p><strong>Admin Comment:</strong> {{ leave.adminComment }}</p>
       </div>
     </div>
 
-    <div class="card-footer">
+    <div class="card-footer pt-1 pb-1">
       <small>📅 Submitted at: {{ leave.submittedAt }}</small>
     </div>
-  </div> <!-- 👈 closing *ngFor div here -->
-</div> <!-- 👈 closing container div here -->
+  </div>
+  <div class="text-center mt-3">
+    <button class="btn btn-outline-primary btn-sm me-2" (click)="prevPage()" [disabled]="currentPage === 1">Prev</button>
+    <span>Page {{ currentPage }} of {{ getTotalPages() }}</span>
+    <button class="btn btn-outline-primary btn-sm ms-2" (click)="nextPage()" [disabled]="currentPage === getTotalPages()">Next</button>
+  </div>
+  
+
+ </div> 
+</div>

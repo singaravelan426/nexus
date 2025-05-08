@@ -5,6 +5,7 @@ import { CommonModule, formatDate, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Database } from '@angular/fire/database';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-leave-req',
@@ -12,7 +13,7 @@ import { Database } from '@angular/fire/database';
   styleUrls: ['./leave-req.component.css'],
   standalone: true,
   imports: [
-    FormsModule, CommonModule,
+    FormsModule, CommonModule,RouterModule
   ],
 })
 export class LeaveReqComponent implements OnInit {
@@ -52,7 +53,7 @@ export class LeaveReqComponent implements OnInit {
       this.getCurrentUserEmail();
       this.updateDateTime();
       setInterval(() => this.updateDateTime(), 1000);
-
+     
       const now = new Date();
       this.todayDate = now.toISOString().split('T')[0];
     }
@@ -70,12 +71,16 @@ export class LeaveReqComponent implements OnInit {
       if (user) {
         this.userEmail = user.email || '';
         this.leaveData.employeeName = this.userEmail.split('@')[0];
-        this.username = this.userEmail.split('@')[0]; // ✅ Set username here
-        this.loadProfilePicture(); // ✅ Now call here after username is set
-
+        this.username = this.getUsername(this.userEmail); // 🛠️ Corrected
+        this.loadProfilePicture();
         this.userInitials = this.getInitials(this.userEmail);
       }
     });
+  }
+  
+  getUsername(email: string): string {
+    const name = email.split('@')[0];
+    return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
   }
 
   loadProfilePicture() {
@@ -139,7 +144,7 @@ export class LeaveReqComponent implements OnInit {
       .then(() => {
         alert('✅ Leave request submitted successfully!');
         this.resetForm();
-        this.router.navigate(['/leave']);
+        this.router.navigate(['/worklog']);
       })
       .catch(error => {
         console.error('❌ Error submitting leave request:', error);

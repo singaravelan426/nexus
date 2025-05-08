@@ -4,22 +4,26 @@ import { Auth } from '@angular/fire/auth';
 import { CommonModule, formatDate } from '@angular/common';
 import { isPlatformBrowser } from '@angular/common';
 import { Inject, PLATFORM_ID } from '@angular/core';
-import { HeaderComponent } from '../header/header.component';
+import { RouterModule } from '@angular/router';
+
 
 @Component({
   selector: 'app-status',
   templateUrl: './status.component.html',
   styleUrls: ['./status.component.css'],
   imports: [
-    CommonModule,
-    HeaderComponent
+    CommonModule,RouterModule
   ],
 })
 export class StatusComponent implements OnInit {
   leaveRequests: any[] = [];
+  paginatedLeaveRequests: any[] = [];
   userEmail = '';
   isBrowser = false;
-  
+
+  // Pagination
+  currentPage = 1;
+  itemsPerPage = 2;
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object, private auth: Auth) {}
 
@@ -31,7 +35,6 @@ export class StatusComponent implements OnInit {
     }
   }
 
-  // Fetch current user email
   getCurrentUserEmail() {
     this.auth.onAuthStateChanged(user => {
       if (user) {
@@ -41,7 +44,6 @@ export class StatusComponent implements OnInit {
     });
   }
 
-  // Fetch only current user's leave requests
   fetchLeaveRequests() {
     const db = getDatabase();
     const leaveRef = ref(db, 'leave-requests');
@@ -54,7 +56,34 @@ export class StatusComponent implements OnInit {
           tempRequests.push(request);
         }
       });
-      this.leaveRequests = tempRequests.reverse(); // Latest first
+
+      this.leaveRequests = tempRequests.reverse();
+      this.updatePaginatedData();
     });
   }
+
+  updatePaginatedData() {
+    const start = (this.currentPage - 1) * this.itemsPerPage;
+    const end = start + this.itemsPerPage;
+    this.paginatedLeaveRequests = this.leaveRequests.slice(start, end);
+  }
+
+  nextPage() {
+    if (this.currentPage < this.getTotalPages()) {
+      this.currentPage++;
+      this.updatePaginatedData();
+    }
+  }
+
+  prevPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.updatePaginatedData();
+    }
+  }
+
+  getTotalPages(): number {
+    return Math.ceil(this.leaveRequests.length / this.itemsPerPage);
+  }
 }
+
