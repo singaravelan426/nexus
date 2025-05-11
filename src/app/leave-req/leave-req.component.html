@@ -55,17 +55,20 @@
       <div *ngIf="isPermission">
         <div class="form-group">
           <label for="startTime">Start Time</label>
-          <input type="time" id="startTime" [(ngModel)]="leaveData.startTime" name="startTime" required />
+          <input type="time" id="startTime" [(ngModel)]="leaveData.startTime" name="startTime" (change)="validateTimes()" required />
+          <small *ngIf="startTimeError" style="color:red;">Start time must be in the future.</small>
         </div>
+      
         <div class="form-group">
           <label for="endTime">End Time</label>
-          <input type="time" id="endTime" [(ngModel)]="leaveData.endTime" name="endTime" required />
+          <input type="time" id="endTime" [(ngModel)]="leaveData.endTime" name="endTime" (change)="validateTimes()"  [disabled]="startTimeError" required />
+          <small *ngIf="endTimeError" style="color:red;">End time must be after start time.</small>
         </div>
       </div>
 
       <!-- Submit -->
       <div class="form-group">
-        <button type="submit" [disabled]="leaveForm.invalid">Submit</button>
+        <button type="submit"  [disabled]="leaveForm.invalid || startTimeError || endTimeError">Submit</button>
       </div>
     </form>
   </div>
@@ -75,5 +78,5 @@
   <div class="container">
     <h2>🕗 Loading Leave Request...</h2>
     <p>This page is not fully interactive yet. Please wait or view in the browser.</p>
-  </div>
+  </div> 
 </ng-template>

@@ -6,6 +6,7 @@ import { LeaveReqComponent } from './leave-req/leave-req.component';
 import { StatusComponent } from './status/status.component';
 import { LeaveNotificationComponent } from './leave-notification/leave-notification.component';
 import { UserProfileComponent } from './user-profile/user-profile.component';
+import { TestComponent } from './test/test.component';
 
 
 export const routes: Routes = [
@@ -16,6 +17,7 @@ export const routes: Routes = [
   { path: 'status', component: StatusComponent },
   { path: 'notification', component: LeaveNotificationComponent },
   {path: 'profile', component:UserProfileComponent },
+  {path: 'test', component:TestComponent },
   { 
     path: 'add-admin', 
     loadComponent: () => import('./add-admin/add-admin.component').then(m => m.AddAdminComponent) 

@@ -9,23 +9,23 @@
         </a>
       </div>
 
-      <h2 class="text-center">hi {{ userName | titlecase }}</h2>
+      <h4 class="text-start ">hi {{ userName | titlecase }}</h4>
 
      
-     
-      <div class="rounded-circle bg-secondary text-white overflow-hidden d-flex justify-content-center align-items-center"
-     style="width: 200px; height: 200px;" title="Click to upload/remove profile picture">
-
-  <ng-container *ngIf="profileImageUrl && profileImageUrl !== 'assets/default-user.png'; else showInitials">
-    <img [src]="profileImageUrl" alt="Profile" class="profile-img">
-  </ng-container>
-
-  <ng-template #showInitials>
-    <span class="initials-span">{{ userInitials }}</span>
-  </ng-template>
-
-</div>
-
+      <div class="d-flex justify-content-center my-3">
+        <div class="rounded-circle bg-secondary text-white overflow-hidden d-flex justify-content-center align-items-center"
+             style="width: 200px; height: 200px;" title="Click to upload/remove profile picture">
+      
+          <ng-container *ngIf="profileImageUrl && profileImageUrl !== 'assets/default-user.png'; else showInitials">
+            <img [src]="profileImageUrl" alt="Profile" class="profile-img">
+          </ng-container>
+      
+          <ng-template #showInitials>
+            <span class="initials-span">{{ userInitials }}</span>
+          </ng-template>
+        </div>
+      </div>
+      
 
  
 

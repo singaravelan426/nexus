@@ -20,6 +20,10 @@ export class UserProfileComponent implements OnInit {
   userEmail: any = '';
   isLoadingProfile = true;
 
+currentTime: string = '';
+  startTime: string = '';
+  endTime: string = '';
+
   
   userInitials: string = '';
 

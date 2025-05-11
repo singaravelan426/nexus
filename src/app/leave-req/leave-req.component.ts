@@ -33,13 +33,17 @@ export class LeaveReqComponent implements OnInit {
   currentDate = '';
   currentTime = '';
   userInitials: string = '';
-  currentTimer: string = '00:00:00';
-  isTimerRunning: boolean = false;
   isBrowser = false;
   todayDate: string = '';
   isPermission = false;
   profileImageUrl: string | null = null;
   username: string = '';
+  startTimeError: boolean = false;
+  
+endTimeError: boolean = false;
+
+
+  
   private db: Database; // Injected database instance
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object, private auth: Auth,db: Database) {
@@ -98,6 +102,44 @@ export class LeaveReqComponent implements OnInit {
       console.error('Error fetching profile image:', error);
     });
   }
+
+  validateTimes() {
+    this.startTimeError = false;
+    this.endTimeError = false;
+  
+    const now = new Date();
+  
+    if (this.leaveData.startTime) {
+      const [startHour, startMinute] = this.leaveData.startTime.split(':').map(Number);
+  
+      const selectedStart = new Date(now);
+      selectedStart.setHours(startHour, startMinute, 0, 0);
+  
+      console.log('🕒 Now:', now.toLocaleString());
+      console.log('🕒 Selected Local Start Time:', selectedStart.toLocaleString());
+  
+      if (selectedStart.getTime() <= now.getTime()) {
+        console.log('❌ Start time is in the past!');
+        this.startTimeError = true;
+      }
+  
+      if (this.leaveData.endTime) {
+        const [endHour, endMinute] = this.leaveData.endTime.split(':').map(Number);
+        const selectedEnd = new Date(now);
+        selectedEnd.setHours(endHour, endMinute, 0, 0);
+  
+        console.log('🕒 Selected Local End Time:', selectedEnd.toLocaleString());
+  
+        if (selectedEnd.getTime() <= selectedStart.getTime()) {
+          console.log('❌ End time is before or equal to start time!');
+          this.endTimeError = true;
+        }
+      }
+    }
+  }
+  
+  
+  
 
   // Update current date and time
   updateDateTime() {

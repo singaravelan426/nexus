@@ -19,6 +19,6 @@
   
   span {
     display: block;
-    line-height: 110px; /* Match the height of the container */
+    line-height: 200px;
     text-align: center;
   }
