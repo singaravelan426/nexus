@@ -8,9 +8,9 @@
   
   /* Page title */
   .page-title {
-    font-size: 2rem;
+    font-size: 1.5rem;
     color: #333;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     text-align: center;
   }
   
@@ -18,7 +18,7 @@
   .tabs {
     display: flex;
     justify-content: center;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
   }
   
   .tab-button {
@@ -41,20 +41,20 @@
   
   /* Section for each tab */
   .request-section {
-    margin-top: 10px;
+    margin-top: 5px;
     
   }
   
   /* Title for each section (Pending, Approved, Rejected) */
   .section-title {
     font-size: 1.5rem;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     text-align: center;
     color: #444;
   }
 
   .card-body{
-    padding-bottom: 10px;
+    padding-bottom: 5px;
   }
   
   /* Card for each leave request */
@@ -62,8 +62,8 @@
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    margin-bottom: 15px;
-    padding: 20px;
+    margin-bottom: 18px;
+    padding: 17px;
     transition: transform 0.3s ease;
   }
   

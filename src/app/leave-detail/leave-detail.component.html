@@ -1,49 +1,57 @@
-<div class="card shadow-sm p-2 mb-3  rounded" style="max-width: 540px; margin: auto; background-color: #d4d4d3;" >
-<div class="container mt-0 bg-white">
+<!-- Outer Card - Full screen height -->
+<div class="card shadow-sm p-2 mb-3 rounded d-flex flex-column" style="max-width: 540px; margin: auto; background-color: #d4d4d3; min-height: 100vh;">
+
+  <!-- Inner Content Container - White background, flexible height -->
+  <div class="container bg-white rounded flex-grow-1 d-flex flex-column">
+
+    <!-- Logo Top Right -->
     <div class="text-end mb-2 mt-3">
-        <a [routerLink]="['/worklog']">
-          <img src="assets/logo.png" alt="Logo" style="width: 100px; height: auto; cursor: pointer;">
-        </a>
-      </div>
-        
-      <div *ngIf="request">
+      <a [routerLink]="['/worklog']">
+        <img src="assets/logo.png" alt="Logo" style="width: 100px; height: auto; cursor: pointer;">
+      </a>
+    </div>
+
+    <!-- Leave Request Content -->
+    <div *ngIf="request" class="flex-grow-1 overflow-auto mb-3">
       <h4>{{ request.employeeName }}</h4>
-      <div style="border: 3px solid #d4d4d3; padding: 4px; border-radius: 8px; margin-bottom: 20px;"> 
 
-        <div class="text-end mb-2 mt-3">
-            <span class="status-badge {{ request.status }}">{{ request.status | uppercase }}</span>
-</div>
+      <div style="border: 3px solid #d4d4d3; padding: 12px; border-radius: 8px; margin-bottom: 20px;">
         
+        <!-- Status Badge -->
+        <div class="text-end mb-2">
+          <span class="status-badge {{ request.status }}">{{ request.status | uppercase }}</span>
+        </div>
 
-<p *ngIf="request.type === 'Leave'" class="compact-paragraph"><strong>START DATE</strong></p>
-<p *ngIf="request.type === 'Leave'" class="compact-paragraph">{{ request.startDate }}</p>
-<p *ngIf="request.type === 'Leave'" class="compact-paragraph"><strong>END DATE</strong></p>
-<p *ngIf="request.type === 'Leave'" class="compact-paragraph">{{ request.endDate }}</p>
+        <!-- Leave Type Details -->
+        <ng-container *ngIf="request.type === 'Leave'">
+          <p class="compact-paragraph"><strong>START DATE:</strong> {{ request.startDate }}</p>
+          <p class="compact-paragraph"><strong>END DATE:</strong> {{ request.endDate }}</p>
+        </ng-container>
 
+        <!-- Permission Type Details -->
+        <ng-container *ngIf="request.type === 'Permission'">
+          <p class="compact-paragraph"><strong>START TIME:</strong> {{ request.startTime }}</p>
+          <p class="compact-paragraph"><strong>END TIME:</strong> {{ request.endTime }}</p>
+        </ng-container>
 
-      <p *ngIf="request.type === 'Permission'" class="compact-paragraph"><strong>START TIME:</strong></p>
-      <p *ngIf="request.type === 'Permission'" class="compact-paragraph">{{ request.startTime }}</p>
-      <p *ngIf="request.type === 'Permission'" class="compact-paragraph"><strong>END TIME:</strong> </p>
-      <p *ngIf="request.type === 'Permission'" class="compact-paragraph">{{ request.endTime }}</p>
+        <p><strong>Type:</strong> {{ request.type }}</p>
+        <p><strong>Reason:</strong> {{ request.reason }}</p>
 
-      <p><strong>Type:</strong> {{ request.type }}</p>
-      <p><strong>Reason:</strong> {{ request.reason }}</p>
-      <div *ngIf="request.status === 'pending'" class="mt-3">
-        <textarea [(ngModel)]="comment" rows="3" class="form-control" placeholder="Add admin comment"></textarea>
-       
-        <div class="mt-3 mb-3 d-flex justify-content-center">
+        <!-- Pending Status Input -->
+        <div *ngIf="request.status === 'pending'" class="mt-3">
+          <textarea [(ngModel)]="comment" rows="3" class="form-control" placeholder="Add admin comment"></textarea>
+          <div class="mt-3 mb-3 d-flex justify-content-center">
             <button class="btn btn-success me-2" style="width: 120px;" (click)="updateStatus('approved')">Approve</button>
             <button class="btn btn-danger" style="width: 120px;" (click)="updateStatus('rejected')">Reject</button>
-            
           </div>
-      </div>
-  
-      <div *ngIf="request.status !== 'pending'" class="mt-3">
-        <p><strong>Admin Comment:</strong> {{ request.adminComment || 'No comment provided.' }}</p>
+        </div>
+
+        <!-- Approved/Rejected Display -->
+        <div *ngIf="request.status !== 'pending'" class="mt-3">
+          <p><strong>Admin Comment:</strong> {{ request.adminComment || 'No comment provided.' }}</p>
+        </div>
+
       </div>
     </div>
-</div>
-
-
   </div>
 </div>

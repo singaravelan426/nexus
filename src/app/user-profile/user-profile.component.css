@@ -1,0 +1,24 @@
+
+  
+ .profile-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+  }
+  
+  .bg-secondary {
+    background-color: #6c757d !important;
+  }
+  
+  .initials-span {
+    font-size: 3rem;
+    font-weight: bold;
+  }
+  
+  span {
+    display: block;
+    line-height: 110px; /* Match the height of the container */
+    text-align: center;
+  }

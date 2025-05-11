@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
 // Add this import:
 import { AngularFireDatabaseModule } from '@angular/fire/compat/database';
 
-import { DashboardComponent } from './dashboard/dashboard.component';
+
 import { LeaveReqComponent } from './leave-req/leave-req.component';
 import { WorkTrackerComponent } from './work-tracker/work-tracker.component';
 
@@ -43,7 +43,7 @@ export const appConfig: ApplicationConfig = {
     AngularFireDatabaseModule, // 👈 Add this to use AngularFireDatabase
 
     // Standalone components
-    DashboardComponent,
+  
     LeaveReqComponent,
     WorkTrackerComponent,
   ]

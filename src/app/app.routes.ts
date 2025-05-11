@@ -1,11 +1,11 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './login/login.component';
 import { WorkTrackerComponent } from './work-tracker/work-tracker.component';
-import { DashboardComponent } from './dashboard/dashboard.component';
+
 import { LeaveReqComponent } from './leave-req/leave-req.component';
 import { StatusComponent } from './status/status.component';
 import { LeaveNotificationComponent } from './leave-notification/leave-notification.component';
-import { AddAdminComponent } from './add-admin/add-admin.component';
+import { UserProfileComponent } from './user-profile/user-profile.component';
 
 
 export const routes: Routes = [
@@ -13,9 +13,9 @@ export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'worklog', component: WorkTrackerComponent },
   { path: 'leave', component: LeaveReqComponent },
-  { path: 'dashboard', component: DashboardComponent },
   { path: 'status', component: StatusComponent },
   { path: 'notification', component: LeaveNotificationComponent },
+  {path: 'profile', component:UserProfileComponent },
   { 
     path: 'add-admin', 
     loadComponent: () => import('./add-admin/add-admin.component').then(m => m.AddAdminComponent) 

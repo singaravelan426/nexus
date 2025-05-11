@@ -79,10 +79,34 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
   private submittedAt: string = '';
   avatarOption: string = '';
   isAdmin = false;
+  private startTimestamp: number = 0;
 
   constructor(private cdr: ChangeDetectorRef, private ngZone: NgZone) {}
 
   ngOnInit() {
+
+    const savedState = localStorage.getItem('workTimerState');
+    if (savedState) {
+      const { startTimestamp, selectedLocation, isTimerRunning } = JSON.parse(savedState);
+      if (isTimerRunning) {
+        this.startTimestamp = startTimestamp;
+        this.selectedLocation = selectedLocation;
+        this.isTimerRunning = true;
+  
+        const now = Date.now();
+        const elapsedMs = now - this.startTimestamp;
+        this.secondsElapsed = Math.floor(elapsedMs / 1000);
+        this.currentTimer = this.formatTime(this.secondsElapsed);
+  
+        this.timerSub = interval(1000).subscribe(() => {
+          const now = Date.now();
+          const elapsedMs = now - this.startTimestamp;
+          this.secondsElapsed = Math.floor(elapsedMs / 1000);
+          this.currentTimer = this.formatTime(this.secondsElapsed);
+        });
+      }
+    }
+
     onAuthStateChanged(this.auth, user => {
       if (user) {
         this.ngZone.run(() => {
@@ -158,6 +182,10 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
     else if (this.avatarOption === 'option2') {
       this.router.navigate(['/add-admin']);
     }
+    else if (this.avatarOption === 'option4') {
+      this.router.navigate(['/profile']);
+    }
+
     else if (this.avatarOption === 'option5') {
       this.removeProfilePicture();
     } 
@@ -199,6 +227,8 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
   }
 
   removeProfilePicture() {
+    const confirmed = window.confirm('Are you sure you want to delete your profile picture?');
+if (confirmed) {
     const db = getDatabase();
     const imageRef = ref(db, `profile-images/${this.username}`);
     remove(imageRef).then(() => {
@@ -206,6 +236,7 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
       this.showSuccessAlert('🗑️ Profile picture removed.');
     });
   }
+}
 
 
   logout() {
@@ -325,25 +356,42 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
   }
 
   startWorkTimer() {
-    this.secondsElapsed = 0;
+    this.startTimestamp = Date.now();
     this.startTime = this.formatDate(new Date());
+    this.isTimerRunning = true;
+  
+    // Save to localStorage
+    localStorage.setItem('workTimerState', JSON.stringify({
+      startTimestamp: this.startTimestamp,
+      selectedLocation: this.selectedLocation,
+      isTimerRunning: true
+    }));
+  
     this.timerSub = interval(1000).subscribe(() => {
-      this.secondsElapsed++;
+      const now = Date.now();
+      const elapsedMs = now - this.startTimestamp;
+      this.secondsElapsed = Math.floor(elapsedMs / 1000);
       this.currentTimer = this.formatTime(this.secondsElapsed);
     });
   }
+  
 
   stopWorkTimerAndSave() {
+    const now = Date.now();
+    const elapsedMs = now - this.startTimestamp;
+    this.secondsElapsed = Math.floor(elapsedMs / 1000);
+    this.currentTimer = this.formatTime(this.secondsElapsed);
+  
     this.endTime = this.formatDate(new Date());
     this.submittedAt = this.formatDate(new Date());
-
+  
     if (!this.selectedLocation) {
       this.locationError = true;
       return;
     }
-
+  
     if (this.timerSub) this.timerSub.unsubscribe();
-
+  
     const db = getDatabase();
     const workLog = {
       email: this.userEmail,
@@ -354,7 +402,7 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
       date: this.formatDate(new Date(), true),
       submittedAt: this.submittedAt
     };
-
+  
     const logsRef = ref(db, 'work-logs');
     push(logsRef, workLog)
       .then(() => {
@@ -365,9 +413,12 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
         console.error('Error saving log:', err);
         this.showSuccessAlert('❌ Error saving work log.');
       });
-
+  
     this.currentTimer = '00:00';
+     // Clear saved state
+  localStorage.removeItem('workTimerState');
   }
+  
 
   showSuccessAlert(message: string) {
     this.alertMessage = message;
@@ -395,7 +446,7 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
   formatTime(seconds: number): string {
     const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
     const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
-    return `${h}h:${m}m`;
+    return `${h}:${m}`;
   }
   
 
