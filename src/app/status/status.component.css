@@ -19,7 +19,7 @@
 }
 
 .leave-card {
-  background: #f0dbec;
+  background:white;
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
@@ -49,18 +49,18 @@
 }
 
 .pending {
-  background-color: #fff4e5;
-  color: #e69500;
+  background-color: #e69727;
+  color: black;
 }
 
 .approved {
-  background-color: #e6ffed;
-  color: #28a745;
+  background-color: #13c144;
+  color:black;
 }
 
 .rejected {
-  background-color: #ffe6e6;
-  color: #dc3545;
+  background-color: #dc3545;
+  color: black;
 }
 
 .card-body p {

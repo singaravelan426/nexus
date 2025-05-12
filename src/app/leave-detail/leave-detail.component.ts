@@ -33,15 +33,25 @@ export class LeaveDetailComponent implements OnInit {
     });
   }
 
-  updateStatus(status: 'approved' | 'rejected') {
-    const db = getDatabase();
-    const requestRef = ref(db, `leave-requests/${this.requestId}`);
-    update(requestRef, {
-      status: status,
-      adminComment: this.comment
-    }).then(() => {
-      alert(`Request ${status} successfully!`);
-      this.router.navigate(['/notification']); // Or return to list
-    }).catch(err => console.error('Update failed', err));
+ updateStatus(status: 'approved' | 'rejected') {
+  if (!this.comment.trim()) {
+    alert('Admin comment is required before taking action.');
+    return;
   }
+
+  const db = getDatabase();
+  const requestRef = ref(db, `leave-requests/${this.requestId}`);
+  update(requestRef, {
+    status: status,
+    adminComment: this.comment
+  }).then(() => {
+    alert(`Request ${status} successfully!`);
+    this.router.navigate(['/notification']);
+  }).catch(err => console.error('Update failed', err));
+}
+
+
+
+
+
 }

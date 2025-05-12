@@ -61,7 +61,7 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
         ticks: { maxRotation: 45, minRotation: 30 }
       },
       y: {
-        title: { display: true, text: 'Duration (mins)' },
+        title: { display: true, text:  'Duration (hours)' },
         suggestedMin: 0,
         ticks: { stepSize: 1 }
       }
@@ -79,6 +79,7 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
   private submittedAt: string = '';
   avatarOption: string = '';
   isAdmin = false;
+  isAdminMain=false;
   private startTimestamp: number = 0;
 
   constructor(private cdr: ChangeDetectorRef, private ngZone: NgZone) {}
@@ -113,6 +114,7 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
           this.userEmail = user.email || '';
           this.username = this.getUsername(this.userEmail);
           this.userInitials = this.getInitials(this.userEmail);
+          this.checkMainAdmin(this.userEmail);
           this.checkAdminStatus(this.userEmail);
           this.loadWorkLogs();
           this.loadProfilePicture(); // ✅ Load image
@@ -137,6 +139,10 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
     const nameParts = name.split('.');
     return nameParts.map(part => part.charAt(0).toUpperCase()).join('');
   }
+
+  checkMainAdmin(email: string) {
+  this.isAdminMain = email === 'singam426@gmail.com';
+}
 
   checkAdminStatus(email: string) {
     const db = getDatabase();
@@ -253,56 +259,125 @@ if (confirmed) {
       });
   }
 
-  loadWorkLogs() {
-    const db = getDatabase();
-    const logsRef = ref(db, 'work-logs');
-    get(logsRef).then(snapshot => {
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        const userLogsByDate: { [dateKey: string]: number } = {};
-        let totalSeconds = 0;
 
-        for (const key in data) {
-          const log = data[key];
-          if (log.email === this.userEmail) {
-            const durationSeconds = this.durationToSeconds(log.duration);
-            const [day, month, year] = log.date.split('/');
-            const isoDate = `${year}-${month}-${day}`;
 
-            userLogsByDate[isoDate] = (userLogsByDate[isoDate] || 0) + durationSeconds;
-            totalSeconds += durationSeconds;
-          }
-        }
+loadWorkLogs() {
+const db = getDatabase();
+const workLogsRef = ref(db, 'work-logs');
+const leaveRef = ref(db, 'leave-requests');
 
-        const sortedIsoDates = Object.keys(userLogsByDate).sort();
-        const labels: string[] = [];
-        const dataPoints: number[] = [];
+type LeaveStatus = 'approved' | 'pending' | 'rejected';
 
-        for (const isoDate of sortedIsoDates) {
-          const [year, month, day] = isoDate.split('-');
-          labels.push(`${day}/${month}/${year}`);
-          dataPoints.push(+((userLogsByDate[isoDate] / 60).toFixed(2)));
-        }
+Promise.all([get(workLogsRef), get(leaveRef)]).then(([workSnapshot, leaveSnapshot]) => {
+const workData = workSnapshot.exists() ? workSnapshot.val() : {};
+const leaveData = leaveSnapshot.exists() ? leaveSnapshot.val() : {};
+const logsByDate: { [date: string]: { workSeconds: number } } = {};
+const leaveStatusData: {
+  [date: string]: { approved: number; pending: number; rejected: number };
+} = {};
 
-        this.chartData = {
-          labels,
-          datasets: [{
-            label: 'Working Hours',
-            data: dataPoints,
-            fill: false,
-            borderColor: 'blue',
-            tension: 0.1
-          }]
-        };
+let totalSeconds = 0;
 
-        this.totalDurationInSeconds = totalSeconds;
-      } else {
-        this.chartData.labels = [];
-        this.chartData.datasets[0].data = [];
-        this.totalDurationInSeconds = 0;
-      }
-    });
+// Process work logs
+for (const key in workData) {
+  const log = workData[key];
+  if (log.email === this.userEmail) {
+    const [day, month, year] = log.date.split('/');
+    const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    const durationSeconds = this.durationToSeconds(log.duration);
+
+    if (!logsByDate[isoDate]) logsByDate[isoDate] = { workSeconds: 0 };
+    logsByDate[isoDate].workSeconds += durationSeconds;
+    totalSeconds += durationSeconds;
   }
+}
+
+// Process leave requests by status
+for (const key in leaveData) {
+  const leave = leaveData[key];
+  if (leave.email === this.userEmail) {
+    const start = new Date(leave.startDate);
+    const end = new Date(leave.endDate);
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const isoDate = d.toISOString().split('T')[0];
+      if (!leaveStatusData[isoDate]) {
+        leaveStatusData[isoDate] = { approved: 0, pending: 0, rejected: 0 };
+      }
+
+      const status = (leave.status?.toLowerCase() ?? '') as string;
+      if (['approved', 'pending', 'rejected'].includes(status)) {
+        leaveStatusData[isoDate][status as LeaveStatus]++;
+      }
+    }
+  }
+}
+
+// Combine all dates
+const allDates = new Set([
+  ...Object.keys(logsByDate),
+  ...Object.keys(leaveStatusData)
+]);
+const sortedDates = Array.from(allDates).sort();
+
+const labels: string[] = [];
+const workDataPoints: number[] = [];
+const approvedData: number[] = [];
+const pendingData: number[] = [];
+const rejectedData: number[] = [];
+
+for (const isoDate of sortedDates) {
+  const [year, month, day] = isoDate.split('-');
+  labels.push(`${day}/${month}/${year}`);
+
+  const workSeconds = logsByDate[isoDate]?.workSeconds || 0;
+  workDataPoints.push(+((workSeconds / 3600).toFixed(2))); // convert to hours
+
+  const leave = leaveStatusData[isoDate] || { approved: 0, pending: 0, rejected: 0 };
+  approvedData.push(leave.approved * 24);
+  pendingData.push(leave.pending * 24);
+  rejectedData.push(leave.rejected * 24);
+}
+
+this.chartData = {
+  labels,
+  datasets: [
+    {
+      label: 'Working Hours',
+      data: workDataPoints,
+      borderColor: 'blue',
+      backgroundColor: 'transparent',
+      tension: 0.2
+    },
+    {
+      label: 'Approved Leave',
+      data: approvedData,
+      borderColor: 'green',
+      backgroundColor: 'transparent',
+      tension: 0.2
+    },
+    {
+      label: 'Pending Leave',
+      data: pendingData,
+      borderColor: 'orange',
+      backgroundColor: 'transparent',
+      tension: 0.2
+    },
+    {
+      label: 'Rejected Leave',
+      data: rejectedData,
+      borderColor: 'red',
+      backgroundColor: 'transparent',
+      tension: 0.2
+    }
+  ]
+};
+
+this.totalDurationInSeconds = totalSeconds;
+});
+}
+
+
+
 
   durationToSeconds(duration: string): number {
     const parts = duration.split(':').map(Number);
@@ -316,12 +391,7 @@ if (confirmed) {
     return 0;
   }
 
-  get totalDurationFormatted(): string {
-    const h = Math.floor(this.totalDurationInSeconds / 3600).toString().padStart(2, '0');
-    const m = Math.floor((this.totalDurationInSeconds % 3600) / 60).toString().padStart(2, '0');
-    const s = (this.totalDurationInSeconds % 60).toString().padStart(2, '0');
-    return `${h}:${m}:${s}`;
-  }
+
 
   onToggleTimer(event: any) {
     const isChecked = event.target.checked;
