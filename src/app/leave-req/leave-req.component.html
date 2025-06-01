@@ -40,16 +40,34 @@
       </div>
 
       <!-- Leave Dates (if not permission) -->
-      <div *ngIf="!isPermission">
-        <div class="form-group">
-          <label for="startDate">Start Date</label>
-          <input type="date" id="startDate" [(ngModel)]="leaveData.startDate" name="startDate" [min]="todayDate" required />
-        </div>
-        <div class="form-group">
-          <label for="endDate">End Date</label>
-          <input type="date" id="endDate" [(ngModel)]="leaveData.endDate" name="endDate" [min]="leaveData.startDate || todayDate" [max]="getMaxEndDate()" required />
-        </div>
-      </div>
+    <div *ngIf="!isPermission">
+  <div class="form-group">
+    <label for="startDate">Start Date</label>
+    <input
+      type="date"
+      id="startDate"
+      [(ngModel)]="leaveData.startDate"
+      name="startDate"
+      [min]="todayDate"
+      (input)="onDateChange('start')"
+      required
+    />
+  </div>
+
+  <div class="form-group">
+    <label for="endDate">End Date</label>
+    <input
+      type="date"
+      id="endDate"
+      [(ngModel)]="leaveData.endDate"
+      name="endDate"
+      [min]="leaveData.startDate || todayDate"
+      (input)="onDateChange('end')"
+      required
+    />
+  </div>
+</div>
+
 
       <!-- Time fields if permission -->
       <div *ngIf="isPermission">

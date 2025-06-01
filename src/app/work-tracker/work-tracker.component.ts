@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, HostListener } from '@angular/core';
 import { Auth, getAuth, onAuthStateChanged, signOut } from '@angular/fire/auth';
 import { getDatabase, ref, push, get, remove, set } from '@angular/fire/database';
 import { interval, Subscription } from 'rxjs';
@@ -29,8 +29,8 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
   username: string = '';
   userInitials: string = '';
   profileImageUrl: string | null = null;
-
-  currentTimer: string = '00h:00m';
+  projectTitle: string = '';
+  currentTimer: string = '00:00:00';
   selectedLocation: string = '';
   locationError: boolean = false;
   showAlert: boolean = false;
@@ -38,38 +38,8 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
   isLoading: boolean = true;
   alertMessage: string = '';
   totalDurationInSeconds: number = 0;
+  chartType: 'bar' = 'bar';
 
-  chartType: 'line' = 'line';
-
-  chartData: ChartData<'line'> = {
-    labels: [],
-    datasets: [{
-      data: [],
-      label: 'Working Hours',
-      fill: false,
-      borderColor: 'blue',
-      tension: 0.1
-    }]
-  };
-
-  chartOptions: ChartOptions<'line'> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      x: {
-        title: { display: true, text: 'Date' },
-        ticks: { maxRotation: 45, minRotation: 30 }
-      },
-      y: {
-        title: { display: true, text:  'Duration (hours)' },
-        suggestedMin: 0,
-        ticks: { stepSize: 1 }
-      }
-    },
-    plugins: {
-      legend: { position: 'top' }
-    }
-  };
 
   private timerSub: Subscription | null = null;
   private refreshSub: Subscription | null = null;
@@ -88,11 +58,15 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
 
     const savedState = localStorage.getItem('workTimerState');
     if (savedState) {
-      const { startTimestamp, selectedLocation, isTimerRunning } = JSON.parse(savedState);
+      const { startTimestamp, selectedLocation, isTimerRunning,projectTitle } = JSON.parse(savedState);
       if (isTimerRunning) {
         this.startTimestamp = startTimestamp;
         this.selectedLocation = selectedLocation;
+        this.projectTitle=projectTitle;
         this.isTimerRunning = true;
+        this.startTime = new Date(this.startTimestamp).toLocaleTimeString(); // 👈 convert timestamp to readable time
+
+        console.log("checking start",this.startTime);
   
         const now = Date.now();
         const elapsedMs = now - this.startTimestamp;
@@ -174,42 +148,57 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
     });
   }
 
-  onAvatarOptionChange() {
-    if (this.avatarOption === 'option3') {
-      // Trigger file input for upload
+ onAvatarOptionChange() {
+  switch (this.avatarOption) {
+    case 'option1':
+      this.router.navigate(['/admin']);
+      break;
+
+    case 'option2':
+      this.router.navigate(['/add-admin']);
+      break;
+
+    case 'option3':
       const fileInput = document.getElementById('avatarFileInput') as HTMLInputElement;
       if (fileInput) {
-        fileInput.click(); // opens file dialog
+        fileInput.click();
       }
-    }
-    else if (this.avatarOption === 'option1') {
-      this.router.navigate(['/notification']);
-    }
-    else if (this.avatarOption === 'option2') {
-      this.router.navigate(['/add-admin']);
-    }
-    else if (this.avatarOption === 'option4') {
-      this.router.navigate(['/profile']);
-    }
+      break;
 
-    else if (this.avatarOption === 'option5') {
+    case 'option5':
       this.removeProfilePicture();
-    } 
-    else if (this.avatarOption === 'option6') {
+      break;
+
+    case 'option6':
       this.router.navigate(['/status']);
-    }
-    
-    else if (this.avatarOption === 'option7') {
-      this.logout();
-    }
-    
-    
-    
-    
-  
-    // Reset selection after action
-    setTimeout(() => this.avatarOption = '', 100);
+      break;
+
+    case 'option7':
+      if (this.isTimerRunning) {
+        alert('⏳ Please stop the work timer before logging out.');
+        
+        // Delay resetting to '' to ensure Angular detects the change
+        setTimeout(() => {
+          this.avatarOption = '';
+        }, 0);
+        return;
+      }
+
+      const confirmLogout = window.confirm('Are you sure you want to logout?');
+      if (confirmLogout) {
+        this.logout();
+      }
+      break;
   }
+
+  // Also reset after any action
+  setTimeout(() => {
+    this.avatarOption = '';
+  }, 0);
+}
+
+
+
 
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -261,120 +250,103 @@ if (confirmed) {
 
 
 
-loadWorkLogs() {
-const db = getDatabase();
-const workLogsRef = ref(db, 'work-logs');
-const leaveRef = ref(db, 'leave-requests');
-
-type LeaveStatus = 'approved' | 'pending' | 'rejected';
-
-Promise.all([get(workLogsRef), get(leaveRef)]).then(([workSnapshot, leaveSnapshot]) => {
-const workData = workSnapshot.exists() ? workSnapshot.val() : {};
-const leaveData = leaveSnapshot.exists() ? leaveSnapshot.val() : {};
-const logsByDate: { [date: string]: { workSeconds: number } } = {};
-const leaveStatusData: {
-  [date: string]: { approved: number; pending: number; rejected: number };
-} = {};
-
-let totalSeconds = 0;
-
-// Process work logs
-for (const key in workData) {
-  const log = workData[key];
-  if (log.email === this.userEmail) {
-    const [day, month, year] = log.date.split('/');
-    const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-    const durationSeconds = this.durationToSeconds(log.duration);
-
-    if (!logsByDate[isoDate]) logsByDate[isoDate] = { workSeconds: 0 };
-    logsByDate[isoDate].workSeconds += durationSeconds;
-    totalSeconds += durationSeconds;
-  }
-}
-
-// Process leave requests by status
-for (const key in leaveData) {
-  const leave = leaveData[key];
-  if (leave.email === this.userEmail) {
-    const start = new Date(leave.startDate);
-    const end = new Date(leave.endDate);
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      const isoDate = d.toISOString().split('T')[0];
-      if (!leaveStatusData[isoDate]) {
-        leaveStatusData[isoDate] = { approved: 0, pending: 0, rejected: 0 };
-      }
-
-      const status = (leave.status?.toLowerCase() ?? '') as string;
-      if (['approved', 'pending', 'rejected'].includes(status)) {
-        leaveStatusData[isoDate][status as LeaveStatus]++;
-      }
-    }
-  }
-}
-
-// Combine all dates
-const allDates = new Set([
-  ...Object.keys(logsByDate),
-  ...Object.keys(leaveStatusData)
-]);
-const sortedDates = Array.from(allDates).sort();
-
-const labels: string[] = [];
-const workDataPoints: number[] = [];
-const approvedData: number[] = [];
-const pendingData: number[] = [];
-const rejectedData: number[] = [];
-
-for (const isoDate of sortedDates) {
-  const [year, month, day] = isoDate.split('-');
-  labels.push(`${day}/${month}/${year}`);
-
-  const workSeconds = logsByDate[isoDate]?.workSeconds || 0;
-  workDataPoints.push(+((workSeconds / 3600).toFixed(2))); // convert to hours
-
-  const leave = leaveStatusData[isoDate] || { approved: 0, pending: 0, rejected: 0 };
-  approvedData.push(leave.approved * 24);
-  pendingData.push(leave.pending * 24);
-  rejectedData.push(leave.rejected * 24);
-}
-
-this.chartData = {
-  labels,
+ chartData: ChartData<'bar'> = {
+  labels: [],
   datasets: [
     {
       label: 'Working Hours',
-      data: workDataPoints,
-      borderColor: 'blue',
-      backgroundColor: 'transparent',
-      tension: 0.2
-    },
-    {
-      label: 'Approved Leave',
-      data: approvedData,
-      borderColor: 'green',
-      backgroundColor: 'transparent',
-      tension: 0.2
-    },
-    {
-      label: 'Pending Leave',
-      data: pendingData,
-      borderColor: 'orange',
-      backgroundColor: 'transparent',
-      tension: 0.2
-    },
-    {
-      label: 'Rejected Leave',
-      data: rejectedData,
-      borderColor: 'red',
-      backgroundColor: 'transparent',
-      tension: 0.2
+      data: [],
+      backgroundColor: 'blue'
     }
   ]
 };
 
-this.totalDurationInSeconds = totalSeconds;
-});
+chartOptions: ChartOptions<'bar'> = {
+  responsive: true,
+  maintainAspectRatio: false,
+  scales: {
+    x: {
+      title: { display: true, text: 'Date' },
+      ticks: { maxRotation: 45, minRotation: 30 }
+    },
+    y: {
+      title: { display: true, text: 'Working Seconds (HH:MM:SS)' },
+      suggestedMin: 0,
+      ticks: {
+        stepSize: 1800, // 30 minutes in seconds
+        callback: (value: any) => this.secondsToHHMMSS(value)
+      }
+    }
+  },
+  plugins: {
+    legend: { position: 'top' }
+  }
+};
+
+secondsToHHMMSS(totalSeconds: number): string {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const pad = (num: number) => num.toString().padStart(2, '0');
+  return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
 }
+
+
+
+
+loadWorkLogs() {
+  const db = getDatabase();
+  const workLogsRef = ref(db, 'work-logs');
+
+  const logsByDate: { [date: string]: { workSeconds: number } } = {};
+  let totalSeconds = 0;
+
+  get(workLogsRef).then((workSnapshot) => {
+    const workData = workSnapshot.exists() ? workSnapshot.val() : {};
+
+    // Process work logs
+    for (const key in workData) {
+      const log = workData[key];
+      if (log.email === this.userEmail) {
+        const [day, month, year] = log.date.split('/');
+        const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        const durationSeconds = this.durationToSeconds(log.duration);
+
+        if (!logsByDate[isoDate]) logsByDate[isoDate] = { workSeconds: 0 };
+        logsByDate[isoDate].workSeconds += durationSeconds;
+        totalSeconds += durationSeconds;
+      }
+    }
+
+    // Sort and prepare chart data
+    const sortedDates = Object.keys(logsByDate).sort();
+    const labels: string[] = [];
+    const workDataPoints: number[] = [];
+
+    for (const isoDate of sortedDates) {
+      const [year, month, day] = isoDate.split('-');
+      labels.push(`${day}/${month}/${year}`);
+
+      const workSeconds = logsByDate[isoDate].workSeconds || 0;
+     workDataPoints.push(workSeconds);
+    }
+
+    this.chartData = {
+      labels,
+      datasets: [
+        {
+          label: 'Working Seconds',
+          data: workDataPoints,
+          backgroundColor: 'blue'
+        }
+      ]
+    };
+
+    this.totalDurationInSeconds = totalSeconds;
+  });
+}
+
 
 
 
@@ -404,11 +376,21 @@ this.totalDurationInSeconds = totalSeconds;
         return;
       }
 
+      if (!this.projectTitle || this.projectTitle.trim() === '') {
+  alert('Please enter a project title before starting the timer.');
+  event.target.checked = false;
+  this.isTimerRunning = false;
+  return;
+}
+
       const confirmStart = window.confirm('Ready to begin your workday? Click Confirm to start the timer.');
       if (confirmStart) {
         this.locationError = false;
         this.isTimerRunning = true;
         this.startWorkTimer();
+
+        
+        
       } else {
         event.target.checked = false;
         this.isTimerRunning = false;
@@ -434,6 +416,7 @@ this.totalDurationInSeconds = totalSeconds;
     localStorage.setItem('workTimerState', JSON.stringify({
       startTimestamp: this.startTimestamp,
       selectedLocation: this.selectedLocation,
+      projectTitle:this.projectTitle,
       isTimerRunning: true
     }));
   
@@ -468,6 +451,7 @@ this.totalDurationInSeconds = totalSeconds;
       startTime: this.startTime,
       endTime: this.endTime,
       duration: this.currentTimer,
+      projectTitle: this.projectTitle,
       location: this.selectedLocation,
       date: this.formatDate(new Date(), true),
       submittedAt: this.submittedAt
@@ -484,7 +468,7 @@ this.totalDurationInSeconds = totalSeconds;
         this.showSuccessAlert('❌ Error saving work log.');
       });
   
-    this.currentTimer = '00:00';
+    this.currentTimer = '00:00:00';
      // Clear saved state
   localStorage.removeItem('workTimerState');
   }
@@ -513,11 +497,12 @@ this.totalDurationInSeconds = totalSeconds;
     return new Intl.DateTimeFormat('en-GB', options).format(date);
   }
 
-  formatTime(seconds: number): string {
-    const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
-    const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
-    return `${h}:${m}`;
-  }
+ formatTime(seconds: number): string {
+  const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+  const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+  const s = (seconds % 60).toString().padStart(2, '0');  // add seconds
+  return `${h}:${m}:${s}`;
+}
   
 
   goToLeavePage() {
@@ -542,6 +527,7 @@ this.totalDurationInSeconds = totalSeconds;
           if (log.email === this.userEmail) {
             userLogs.push({
               Date: log.date,
+              'Project Title' :log.projectTitle,
               'Start Time': log.startTime,
               'End Time': log.endTime,
               Duration: log.duration,
@@ -574,4 +560,13 @@ this.totalDurationInSeconds = totalSeconds;
       this.showSuccessAlert('❌ Failed to generate report.');
     });
   }
+  @HostListener('window:beforeunload', ['$event'])
+onBeforeUnload(event: BeforeUnloadEvent) {
+  if (this.isTimerRunning) {
+    event.preventDefault();
+   
+    event.returnValue = '';
+  }
+}
+
 }

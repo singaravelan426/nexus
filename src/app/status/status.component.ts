@@ -20,6 +20,8 @@ export class StatusComponent implements OnInit {
   paginatedLeaveRequests: any[] = [];
   userEmail = '';
   isBrowser = false;
+    isLoading: boolean = false;
+
 
   // Pagination
   currentPage = 1;

@@ -27,6 +27,9 @@
               <span *ngIf="!profileImageUrl">{{ userInitials }}</span>
             </div>
           </label>
+          <div *ngIf="isAdmin ||isAdminMain" class="position-absolute bottom-0 start-50 translate-middle-x bg-warning text-dark px-2 py-1 rounded shadow-sm small">
+    ADMIN
+  </div>
         </div>
 
         <!-- Dropdown -->
@@ -35,9 +38,8 @@
             <option value="" disabled></option>
             <option *ngIf="isAdmin || isAdminMain" value="option1">Admin</option>
             <option *ngIf="isAdminMain" value="option2">Add Roles</option>
-            <option value="option3">Update/Change</option>
-            <option value="option4">Profile</option>
-            <option value="option5">Remove Profile</option>
+            <option value="option3">Update/Change Profile</option>
+            <option value="option5">Remove Profile Picture</option>
             <option value="option6">Leave Status</option>
             <option value="option7">Logout</option>
           </select>
@@ -45,9 +47,10 @@
         </div>
 
         <!-- Timer -->
-        <div class="d-flex align-items-center" style="gap: 10px;">
+<div class="d-flex align-items-center mt-3" style="gap: 10px;">
           <div>
             <p style="font-size: 2rem; margin-bottom: 0;"><strong>{{ currentTimer }}</strong></p>
+            <p style="font-size: 1.25rem; margin-bottom: 0;"><strong> HH  :  MM  :  SS </strong></p>
           </div>
           <div class="form-check form-switch m-0" style="transform: scale(1.5);">
             <input class="form-check-input" type="checkbox" id="liveTimerToggle" [checked]="isTimerRunning" (change)="onToggleTimer($event)">
@@ -67,6 +70,19 @@
         </div>
       </div>
 
+
+<!-- PROJECT TILTLE -->
+    <div class="d-flex align-items-center mb-3" style="gap: 100px;">
+  <label for="projectTitle" class="form-label mb-0" style="white-space: nowrap; font-weight: normal; font-size: larger;">Project Title</label>
+  <input type="text"
+         id="projectTitle"
+         class="form-control"
+         style="max-width: 300px;"
+         placeholder="Enter Project Title"
+         [(ngModel)]="projectTitle">
+</div>
+
+
       <!-- Leave Request -->
       <div class="mb-2 mt-2">
         <div class="d-flex align-items-center justify-content-between">
@@ -78,9 +94,9 @@
       <!-- Work Report -->
       <h6>Work Report</h6>
       <div class="mb-2">
-        <div class="bg-light rounded p-3 chart-container">
+        <div class="bg-white rounded p-3 chart-container">
           <canvas baseChart
-            style="height: 100% !important; width: 100% !important;"
+            style="height: 100% !important; width: 50% !important;"
             [data]="chartData"
             [options]="chartOptions"
             [type]="chartType">

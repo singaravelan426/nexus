@@ -14,8 +14,7 @@ import { CommonModule } from '@angular/common';
 import { AngularFireDatabaseModule } from '@angular/fire/compat/database';
 
 
-import { LeaveReqComponent } from './leave-req/leave-req.component';
-import { WorkTrackerComponent } from './work-tracker/work-tracker.component';
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyDJg07izYy4Kq34rDMmCorqLRnQb59jWI4",
@@ -44,7 +43,6 @@ export const appConfig: ApplicationConfig = {
 
     // Standalone components
   
-    LeaveReqComponent,
-    WorkTrackerComponent,
+   
   ]
 };

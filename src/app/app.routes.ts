@@ -5,7 +5,9 @@ import { WorkTrackerComponent } from './work-tracker/work-tracker.component';
 import { LeaveReqComponent } from './leave-req/leave-req.component';
 import { StatusComponent } from './status/status.component';
 import { LeaveNotificationComponent } from './leave-notification/leave-notification.component';
-import { UserProfileComponent } from './user-profile/user-profile.component';
+import { AdminComponent } from './admin/admin.component';
+import { WorkDetailComponent } from './work-detail/work-detail.component';
+
 
 
 
@@ -16,8 +18,8 @@ export const routes: Routes = [
   { path: 'leave', component: LeaveReqComponent },
   { path: 'status', component: StatusComponent },
   { path: 'notification', component: LeaveNotificationComponent },
-  {path: 'profile', component:UserProfileComponent },
- 
+  { path: 'admin', component: AdminComponent },
+ { path: 'work-detail', component: WorkDetailComponent },
   { 
     path: 'add-admin', 
     loadComponent: () => import('./add-admin/add-admin.component').then(m => m.AddAdminComponent) 

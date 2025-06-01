@@ -13,7 +13,7 @@ import { RouterModule } from '@angular/router';
   styleUrls: ['./leave-req.component.css'],
   standalone: true,
   imports: [
-    FormsModule, CommonModule,RouterModule
+    FormsModule, CommonModule,RouterModule,
   ],
 })
 export class LeaveReqComponent implements OnInit {
@@ -41,6 +41,39 @@ export class LeaveReqComponent implements OnInit {
   startTimeError: boolean = false;
   
 endTimeError: boolean = false;
+
+todayDate1: string = new Date().toISOString().split('T')[0];
+
+holidayList: string[]= [
+  '2025-01-01',
+  '2025-01-14',
+  '2025-01-15',
+  '2025-01-16',
+  '2025-01-26',
+  '2025-02-11',
+  '2025-04-14',
+  '2025-04-18',
+  '2025-05-01',
+  '2025-08-15',
+  '2025-08-16',
+  '2025-08-27',
+  '2025-10-02',
+  '2025-10-20',
+  '2025-12-25',
+];
+leaveData1= {
+  startDate: '',
+  endDate: ''
+};
+
+onDateChange(type: 'start' | 'end') {
+  const date = type === 'start' ? this.leaveData.startDate : this.leaveData.endDate;
+  if (this.holidayList.includes(date)) {
+    alert(`${date} is a holiday. Please select another date.`);
+    if (type === 'start') this.leaveData.startDate = '';
+    else this.leaveData.endDate = '';
+  }
+}
 
 
   
@@ -184,12 +217,12 @@ endTimeError: boolean = false;
 
     push(leaveRef, data)
       .then(() => {
-        alert('✅ Leave request submitted successfully!');
+        alert('✅ Your request submitted successfully!');
         this.resetForm();
         this.router.navigate(['/worklog']);
       })
       .catch(error => {
-        console.error('❌ Error submitting leave request:', error);
+        console.error('❌ Error submitting your request:', error);
       });
   }
 
@@ -225,12 +258,6 @@ endTimeError: boolean = false;
     };
     this.isPermission = false;
   }
-  getMaxEndDate(): string {
-    if (!this.leaveData.startDate) return '';
-    const start = new Date(this.leaveData.startDate);
-    const max = new Date(start);
-    max.setDate(start.getDate() + 2); // Max 2 days after start
-    return max.toISOString().split('T')[0];
-  }
+ 
   
 }
