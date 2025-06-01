@@ -5,6 +5,7 @@
   background-color: white;
 }
 
+
 .title {
   text-align: center;
   font-size: 1.5rem;
@@ -74,4 +75,18 @@
   text-align: right;
   font-size: 0.85rem;
   color: #888;
+}
+
+.active-tab {
+  background-color: #CEA763 !important;
+  color: black !important;
+  border-color: #CEA763 !important;
+}
+
+.btn-custom:hover,
+.btn-custom:focus,
+.btn-custom:active {
+  background-color: #EFDFA1 !important;
+  color: black !important;
+  border-color: #EFDFA1 !important;
 }

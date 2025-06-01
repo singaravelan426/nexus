@@ -65,5 +65,47 @@
     height: 250px;
     position: relative;
   }
+
+ .btn-apply {
+  background-color: #CEA763 !important;
+  color: black !important;
+  border: none !important;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-apply:hover {
+  background-color: #EFDFA1 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.btn-print-report {
+  background-color: #CEA763 !important;
+  color: black !important;
+  border: none !important;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  font-size: 0.9rem;
+}
+
+.btn-print-report:hover {
+  background-color: #EFDFA1 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.admin-badge {
+  background-color: #CEA763;
+  color: #000;
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  z-index: 10;
+}
+
   
   

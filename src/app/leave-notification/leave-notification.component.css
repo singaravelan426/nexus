@@ -25,17 +25,17 @@
     margin: 4px;
     padding: 6px 12px;
     border: none;
-    background-color: #eee;
+    background-color: #CEA763;
     cursor: pointer;
     border-radius: 4px;
   }
   
   .tab-button:hover {
-    background-color: #e0e0e0;
+    background-color:#EFDFA1;
   }
   
   .tab-button.active {
-    background-color: #007bff;
+    background-color: #EFDFA1;
     color: white;
   }
   

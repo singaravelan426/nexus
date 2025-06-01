@@ -12,8 +12,7 @@ import { saveAs } from 'file-saver-es';
 import { NgZone } from '@angular/core';
 import { inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
-
-
+import { InactivityService } from '../services/inactivity.service';
 @Component({
   standalone: true,
   selector: 'app-work-tracker',
@@ -52,9 +51,19 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
   isAdminMain=false;
   private startTimestamp: number = 0;
 
-  constructor(private cdr: ChangeDetectorRef, private ngZone: NgZone) {}
+  constructor(private cdr: ChangeDetectorRef, private ngZone: NgZone,private inactivityService: InactivityService) {}
 
   ngOnInit() {
+    this.inactivityService.startMonitoring(() => {
+    if (this.isTimerRunning) {
+      this.stopWorkTimerAndSave();
+    }
+    localStorage.removeItem('workTimerState');
+    signOut(this.auth).then(() => {
+      this.router.navigate(['/login']);
+      
+    });
+  }, 60000);
 
     const savedState = localStorage.getItem('workTimerState');
     if (savedState) {
@@ -84,6 +93,7 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
 
     onAuthStateChanged(this.auth, user => {
       if (user) {
+        
         this.ngZone.run(() => {
           this.userEmail = user.email || '';
           this.username = this.getUsername(this.userEmail);
@@ -174,15 +184,7 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
       break;
 
     case 'option7':
-      if (this.isTimerRunning) {
-        alert('⏳ Please stop the work timer before logging out.');
-        
-        // Delay resetting to '' to ensure Angular detects the change
-        setTimeout(() => {
-          this.avatarOption = '';
-        }, 0);
-        return;
-      }
+     
 
       const confirmLogout = window.confirm('Are you sure you want to logout?');
       if (confirmLogout) {
@@ -235,18 +237,25 @@ if (confirmed) {
 
 
   logout() {
-    const auth = getAuth();
-    signOut(auth)
-      .then(() => {
-        this.showSuccessAlert('👋 Logged out successfully.');
-        // Redirect to login page or home
-        window.location.href = '/login'; // adjust route if needed
-      })
-      .catch((error) => {
-        console.error('Logout error:', error);
-        this.showSuccessAlert('❌ Logout failed.');
-      });
+  if (this.isTimerRunning) {
+
+  alert('⏳ Please stop the timer before logging out.');
+    return;
+   
   }
+
+  localStorage.removeItem('workTimerState');
+
+  signOut(this.auth)
+    .then(() => {
+      this.showSuccessAlert('👋 Logged out successfully.');
+      this.router.navigate(['/login']);
+    })
+    .catch((error) => {
+      console.error('Logout error:', error);
+      this.showSuccessAlert('❌ Logout failed.');
+    });
+}
 
 
 

@@ -1,25 +1,31 @@
-<div class="card shadow-sm p-2 mb-1  rounded" style="max-width: 540px;min-height: 100vh; margin: auto; background-color: #d4d4d3;" >
-  <div class="card shadow-sm p-3 mb-0 bg-white rounded" style="max-width:400;">
+<div class="card shadow-sm p-2 mb-1 rounded" 
+     style="max-width: 540px; min-height: 100vh; margin: auto; background-color: #d4d4d3;">
 
+  <!-- Inner White Card with Flex Column Layout -->
+  <div class="card shadow-sm p-3 mb-0 bg-white rounded d-flex flex-column" style="height: 97vh;">
+
+    <!-- Logo -->
     <div class="text-end mb-1">
       <a [routerLink]="['/worklog']">
         <img src="assets/logo.png" alt="Logo" style="width: 100px; height: auto; cursor: pointer;">
       </a>
     </div>
 
-<div class="container">
-  <h3 class="page-title text-start" style="font-weight: bold; font-family: sans-serif;">Leave Approvals</h3>
+    <!-- SCROLLABLE CONTENT -->
+    <div class="flex-grow-1 overflow-auto" style="min-height: 0;">
+      <div class="container">
+        <h3 class="page-title text-start fw-bold" style="font-family: sans-serif;">Leave Approvals</h3>
 
-  <!-- Tabs -->
-<div class="tabs">
-  <button (click)="selectedTab = 'all'" [class.active]="selectedTab === 'all'" class="tab-button">All</button>
-  <button (click)="selectedTab = 'pending'" [class.active]="selectedTab === 'pending'" class="tab-button">Pending</button>
-  <button (click)="selectedTab = 'approved'" [class.active]="selectedTab === 'approved'" class="tab-button">Approved</button>
-  <button (click)="selectedTab = 'rejected'" [class.active]="selectedTab === 'rejected'" class="tab-button">Rejected</button>
-</div>
+        <!-- Tabs -->
+        <div class="tabs d-flex justify-content-between mb-3">
+          <button (click)="selectedTab = 'all'" [class.active]="selectedTab === 'all'" class="tab-button">All</button>
+          <button (click)="selectedTab = 'pending'" [class.active]="selectedTab === 'pending'" class="tab-button">Pending</button>
+          <button (click)="selectedTab = 'approved'" [class.active]="selectedTab === 'approved'" class="tab-button">Approved</button>
+          <button (click)="selectedTab = 'rejected'" [class.active]="selectedTab === 'rejected'" class="tab-button">Rejected</button>
+        </div>
 
-<!-- Requests List -->
-<div class="request-section pt-1">
+        <!-- Requests List -->
+        <div class="request-section pt-0">
 
   <div *ngFor="let request of getRequestsForSelectedTab()" class="request-card">
     <div class="card-header mt-1">
@@ -47,39 +53,30 @@
         </i>
       </div>
     </div>
-    
+
+      </div>
+    </div>
+
+    <!-- FIXED Pagination -->
+    <div class="pt-0" style="flex: 0 0 auto;">
+      <div class="d-flex justify-content-center align-items-center gap-3">
+        <button 
+          (click)="currentPage = currentPage - 1" 
+          [disabled]="currentPage === 1"
+          class="btn btn-outline-primary btn-sm rounded-pill px-3">
+          Prev
+        </button>
+
+        <span class="fw-semibold">Page {{ currentPage }} of {{ getTotalPages() }}</span>
+
+        <button 
+          (click)="currentPage = currentPage + 1" 
+          [disabled]="currentPage >= getTotalPages()"
+          class="btn btn-outline-primary btn-sm rounded-pill px-3">
+          Next
+        </button>
+      </div>
+    </div>
 
   </div>
-</div>
-
- 
-
-</div>
-
-
-<!-- Pagination Controls -->
-<div class="pagination text-center mt-1">
-  <button 
-    (click)="currentPage = currentPage - 1" 
-    [disabled]="currentPage === 1"
-    class="btn btn-outline-primary btn-sm me-1">
-    Prev
-  </button>
-
-  <span>Page {{currentPage}} of {{getTotalPages()}}</span>
-
-  <button 
-    (click)="currentPage = currentPage + 1" 
-    [disabled]="currentPage >= getTotalPages()"
-    class="btn btn-outline-primary btn-sm ms-1 ">
-    Next
-  </button>
-</div>
-
-
-
-  
-</div>
-
-
 </div>

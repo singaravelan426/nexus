@@ -1,37 +1,37 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 import { getDatabase, ref, onValue } from '@angular/fire/database';
 import { Auth } from '@angular/fire/auth';
-import { CommonModule, formatDate } from '@angular/common';
-import { isPlatformBrowser } from '@angular/common';
-import { Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { PLATFORM_ID } from '@angular/core';
 import { RouterModule } from '@angular/router';
-
 
 @Component({
   selector: 'app-status',
   templateUrl: './status.component.html',
   styleUrls: ['./status.component.css'],
-  imports: [
-    CommonModule,RouterModule
-  ],
+  standalone: true,
+  imports: [CommonModule, RouterModule],
 })
 export class StatusComponent implements OnInit {
   leaveRequests: any[] = [];
+  filteredLeaveRequests: any[] = [];
   paginatedLeaveRequests: any[] = [];
   userEmail = '';
   isBrowser = false;
-    isLoading: boolean = false;
-
+  isLoading = false;
 
   // Pagination
   currentPage = 1;
   itemsPerPage = 2;
+  totalPagesArray: number[] = [];
+
+  // Tab filter
+  selectedTab: string = 'all';
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object, private auth: Auth) {}
 
   ngOnInit(): void {
     this.isBrowser = isPlatformBrowser(this.platformId);
-
     if (this.isBrowser) {
       this.getCurrentUserEmail();
     }
@@ -60,32 +60,45 @@ export class StatusComponent implements OnInit {
       });
 
       this.leaveRequests = tempRequests.reverse();
-      this.updatePaginatedData();
+      this.currentPage = 1;
+      this.applyFilterAndPaginate();
     });
   }
 
+  selectTab(tab: string) {
+    this.selectedTab = tab;
+    this.currentPage = 1;
+    this.applyFilterAndPaginate();
+  }
+
+  applyFilterAndPaginate() {
+    if (this.selectedTab === 'all') {
+      this.filteredLeaveRequests = [...this.leaveRequests];
+    } else {
+      this.filteredLeaveRequests = this.leaveRequests.filter(
+        leave => leave.status.toLowerCase() === this.selectedTab
+      );
+    }
+    this.updatePaginatedData();
+  }
+
   updatePaginatedData() {
+    const total = this.getTotalPages();
+    this.totalPagesArray = Array.from({ length: total }, (_, i) => i + 1);
+
     const start = (this.currentPage - 1) * this.itemsPerPage;
     const end = start + this.itemsPerPage;
-    this.paginatedLeaveRequests = this.leaveRequests.slice(start, end);
-  }
-
-  nextPage() {
-    if (this.currentPage < this.getTotalPages()) {
-      this.currentPage++;
-      this.updatePaginatedData();
-    }
-  }
-
-  prevPage() {
-    if (this.currentPage > 1) {
-      this.currentPage--;
-      this.updatePaginatedData();
-    }
+    this.paginatedLeaveRequests = this.filteredLeaveRequests.slice(start, end);
   }
 
   getTotalPages(): number {
-    return Math.ceil(this.leaveRequests.length / this.itemsPerPage);
+    return Math.ceil(this.filteredLeaveRequests.length / this.itemsPerPage) || 1;
+  }
+
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.getTotalPages()) {
+      this.currentPage = page;
+      this.updatePaginatedData();
+    }
   }
 }
-

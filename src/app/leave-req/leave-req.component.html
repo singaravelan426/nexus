@@ -85,9 +85,16 @@
       </div>
 
       <!-- Submit -->
-      <div class="form-group">
-        <button type="submit"  [disabled]="leaveForm.invalid || startTimeError || endTimeError">Submit</button>
-      </div>
+      <div class="form-group text-center mt-3">
+  <button 
+    type="submit" 
+    class="btn btn-submit px-4 py-2 rounded-pill fw-semibold"
+    [disabled]="leaveForm.invalid || startTimeError || endTimeError"
+  >
+    Submit
+  </button>
+</div>
+
     </form>
   </div>
 </div>

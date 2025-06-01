@@ -1,66 +1,87 @@
-  <div class="card shadow-sm p-2 mb-3 rounded" style="max-width: 540px;min-height: 100vh; margin: auto; background-color: #d4d4d3; width: 100%;
-box-sizing: border-box; ">
+<div class="card shadow-sm p-2 mb-2 rounded" 
+     style="max-width: 540px; height: 100vh; margin: auto; background-color: #d4d4d3; width: 100%; box-sizing: border-box;">
 
-    <div class="card shadow-sm p-3 mb-1 bg-white rounded">
-    <!-- Header -->
-      <div class="text-end mb-2">
-        <a [routerLink]="['/worklog']">
-          <img src="assets/logo.png" alt="Logo" style="width: 100px; height: auto; cursor: pointer;">
-        </a>
-      </div>
+  <!-- Inner White Card with Flex Layout -->
+  <div class="card shadow-sm p-3 mb-1 bg-white rounded d-flex flex-column" style="height: 97vh;">
 
+    <!-- Header Logo -->
+    <div class="text-end mb-2">
+      <a [routerLink]="['/worklog']">
+        <img src="assets/logo.png" alt="Logo" style="width: 100px; height: auto; cursor: pointer;">
+      </a>
+    </div>
+
+    <!-- Username Header -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-      <h4 class="fw-bold">{{username}}</h4>
+      <h4 class="fw-bold">{{ username }}</h4>
     </div>
 
-    <!-- Leave Approvals -->
-    <div class="mb-4">
-  <h5 class="fw-semibold">LEAVE APPROVALS</h5>
+    <!-- SCROLLABLE CONTENT -->
+    <div class="flex-grow-1 overflow-auto" style="min-height: 0;">
+      <!-- Leave Approvals Section -->
+      <div class="mb-2">
+        <h5 class="fw-semibold">LEAVE APPROVALS</h5>
 
-  <div *ngFor="let leave of leaveRequests" class="card p-3 mb-3 border rounded-4">
-    <div class="d-flex justify-content-between align-items-center">
-      <div>
-        <div class="text-muted small">{{ leave.employeeName || 'Associate Name' }}</div>
+        <div *ngFor="let leave of leaveRequests" 
+             class="card p-3 mb-2 border rounded-4" 
+             style="background-color: #f8f9fa;">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="text-muted small">{{ leave.employeeName || 'Associate Name' }}</div>
+              <div class="fw-bold">{{ formatLeaveDisplay(leave) }}</div>
+            </div>
+            <span class="badge px-3 py-2 rounded-pill" [ngClass]="getBadgeClass(leave.status)">
+              {{ leave.status.toUpperCase() }}
+            </span>
+          </div>
+        </div>
 
-        <div class="fw-bold">{{ formatLeaveDisplay(leave) }}</div>
+        <!-- MORE Button -->
+        <div class="text-end">
+          <button 
+            class="btn btn-more btn-sm px-4 py-1 rounded-pill fw-semibold" 
+            [routerLink]="['/notification']"
+          >
+            MORE
+          </button>
+        </div>
       </div>
-      <span class="badge px-3 py-2 rounded-pill" [ngClass]="getBadgeClass(leave.status)">
-        {{ leave.status.toUpperCase() }}
-      </span>
-    </div>
-  </div>
 
-  <div class="text-end">
-    <button class="btn btn-outline-dark btn-sm" [routerLink]="['/notification']">MORE</button>
+      <!-- Associates Reports Section -->
+      <h5 class="fw-semibold">ASSOCIATES REPORTS</h5>
+
+      <div *ngFor="let email of pagedEmployees" 
+           class="d-flex align-items-center justify-content-between p-2 border rounded-4 mb-2" 
+           style="background-color: #f8f9fa;">
+        <div class="d-flex align-items-center">
+          <div class="rounded-circle bg-light text-secondary fw-bold d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+            {{ getInitials(email) }}
+          </div>
+          <div class="fw-semibold">{{ getUsername(email) }}</div>
+        </div>
+        <button 
+          class="btn btn-more-alt btn-sm fw-semibold text-white px-4 py-1 rounded-pill"
+          (click)="goToWorkDetail(email)"
+        >
+          MORE
+        </button>
+      </div>
+    </div>
+
+    <!-- FIXED Pagination -->
+    <nav *ngIf="totalPages.length > 1" class="mt-2" style="flex: 0 0 auto; position: sticky; bottom: 0; background: white; z-index: 1;">
+      <ul class="pagination justify-content-center">
+        <li class="page-item" [class.disabled]="currentPage === 1">
+          <button class="page-link" (click)="goToPage(currentPage - 1)">«</button>
+        </li>
+        <li class="page-item" *ngFor="let page of totalPages" [class.active]="page === currentPage">
+          <button class="page-link" (click)="goToPage(page)">{{ page }}</button>
+        </li>
+        <li class="page-item" [class.disabled]="currentPage === totalPages.length">
+          <button class="page-link" (click)="goToPage(currentPage + 1)">»</button>
+        </li>
+      </ul>
+    </nav>
+
   </div>
 </div>
-
-    <!-- Associates Reports -->
-   <h5 class="fw-semibold">ASSOCIATES REPORTS</h5>
-
-<div *ngFor="let email of pagedEmployees" class="d-flex align-items-center justify-content-between p-1 border rounded-4 mb-2">
-  <div class="d-flex align-items-center">
-    <div class="rounded-circle bg-light text-secondary fw-bold d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-      {{ getInitials(email) }}
-    </div>
-    <div class="fw-semibold">{{ getUsername(email) }}</div>
-  </div>
-  <button class="btn btn-warning btn-sm text-white fw-semibold" (click)="goToWorkDetail(email)">MORE</button>
-
-</div>
-
-<!-- Pagination Buttons -->
-<nav *ngIf="totalPages.length > 1" class="mt-3">
-  <ul class="pagination justify-content-center">
-    <li class="page-item" [class.disabled]="currentPage === 1">
-      <button class="page-link" (click)="goToPage(currentPage - 1)">«</button>
-    </li>
-    <li class="page-item" *ngFor="let page of totalPages" [class.active]="page === currentPage">
-      <button class="page-link" (click)="goToPage(page)">{{ page }}</button>
-    </li>
-    <li class="page-item" [class.disabled]="currentPage === totalPages.length">
-      <button class="page-link" (click)="goToPage(currentPage + 1)">»</button>
-    </li>
-  </ul>
-</nav>
-

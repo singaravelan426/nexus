@@ -1,59 +1,97 @@
 <div *ngIf="!isLoading">
   <!-- Outer Card -->
-  <div class="card shadow-sm p-2 mb-3 rounded" style="max-width: 540px; min-height: 100vh; margin: auto; background-color: #d4d4d3;">
-    
+  <div class="card shadow-sm p-2 mb-2 rounded" 
+       style="max-width: 540px; height: 100vh; margin: auto; background-color: #d4d4d3;">
+
     <!-- Inner White Card -->
-    <div class="card shadow-sm p-3 mb-1 bg-white rounded" style="height:98vh;">
+    <div class="card shadow-sm p-2 mb-1 bg-white rounded d-flex flex-column" style="height: 97vh;">
 
       <!-- Logo -->
-      <div class="text-end mb-1">
+      <div class="text-end mb-1" style="flex: 0 0 auto;">
         <a [routerLink]="['/worklog']">
           <img src="assets/logo.png" alt="Logo" style="width: 100px; height: auto; cursor: pointer;">
         </a>
       </div>
 
-      <h6 class="title pt-1">Leave Request Status</h6>
+      <!-- Tab Filter Buttons -->
+      <div class="d-flex justify-content-center gap-2 my-2 flex-wrap" style="flex: 0 0 auto;">
+        <button 
+    class="btn btn-outline-dark px-3 py-1 rounded-pill fw-semibold btn-custom" style="background-color: #CEA763; color: black; " 
+    [class.active-tab]="selectedTab === 'all'" 
+    (click)="selectTab('all')">All</button>
+    
+  <button 
+    class="btn btn-outline-secondary px-3 py-1 rounded-pill fw-semibold btn-custom" style="background-color: #CEA763; color: black;"
+    [class.active-tab]="selectedTab === 'pending'" 
+    (click)="selectTab('pending')">Pending</button>
 
-      <!-- No Data Message -->
-      <div *ngIf="leaveRequests.length === 0" class="empty-message">
-        <p>No leave requests found.</p>
+  <button 
+    class="btn btn-outline-success px-3 py-1 rounded-pill fw-semibold btn-custom" style="background-color: #CEA763; color: black;"
+    [class.active-tab]="selectedTab === 'approved'" 
+    (click)="selectTab('approved')">Approved</button>
+
+  <button 
+    class="btn btn-outline-danger px-3 py-1 rounded-pill fw-semibold btn-custom" style="background-color: #CEA763; color: black;" 
+    [class.active-tab]="selectedTab === 'rejected'" 
+    (click)="selectTab('rejected')">Rejected</button>
       </div>
 
-      <!-- Leave Cards -->
-      <div *ngFor="let leave of paginatedLeaveRequests" class="leave-card pt-2 pb-1">
-        <div class="card-header pt-1 pb-1 d-flex justify-content-between align-items-center">
-          <h5 class="mb-0">{{ leave.employeeName }}</h5>
-          <span class="status-badge badge rounded-pill text-uppercase" [ngClass]="leave.status">{{ leave.status }}</span>
+      <!-- Title -->
+      <h6 class="title pt-1" style="flex: 0 0 auto;">Leave Request Status</h6>
+
+      <!-- Scrollable leave card area -->
+      <div class="flex-grow-1 overflow-auto" style="min-height: 0;">
+        <div *ngIf="leaveRequests.length === 0" class="empty-message">
+          <p>No leave requests found.</p>
         </div>
 
-        <div class="card-body pt-1 pb-0">
-          <p><strong>Reason:</strong> {{ leave.reason }}</p>
-          <p><strong>Request Type:</strong> {{ leave.type }}</p>
-
-          <div *ngIf="leave.type === 'Leave'">
-            <p><strong>From:</strong> {{ leave.startDate }} <strong>To:</strong> {{ leave.endDate }}</p>
+        <!-- Leave Cards -->
+        <div *ngFor="let leave of paginatedLeaveRequests" class="leave-card pt-1 pb-0">
+          <div class="card-header pt-0 pb-0 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">{{ leave.employeeName }}</h5>
+            <span class="status-badge badge rounded-pill text-uppercase" [ngClass]="leave.status">
+              {{ leave.status }}
+            </span>
           </div>
 
-          <div *ngIf="leave.type === 'Permission'">
-            <p><strong>From:</strong> {{ leave.startTime }} <strong>To:</strong> {{ leave.endTime }}</p>
+          <div class="card-body pt-0 pb-0">
+            <p><strong>Reason:</strong> {{ leave.reason }}</p>
+            <p><strong>Request Type:</strong> {{ leave.type }}</p>
+
+            <div *ngIf="leave.type === 'Leave'">
+              <p><strong>From:</strong> {{ leave.startDate }} <strong>To:</strong> {{ leave.endDate }}</p>
+            </div>
+
+            <div *ngIf="leave.type === 'Permission'">
+              <p><strong>From:</strong> {{ leave.startTime }} <strong>To:</strong> {{ leave.endTime }}</p>
+            </div>
+
+            <div *ngIf="leave.adminComment">
+              <p><strong>Admin Comment:</strong> {{ leave.adminComment }}</p>
+            </div>
           </div>
 
-          <div *ngIf="leave.adminComment">
-            <p><strong>Admin Comment:</strong> {{ leave.adminComment }}</p>
+          <div class="card-footer pt-1 pb-1">
+            <small>📅 Submitted at: {{ leave.submittedAt }}</small>
           </div>
-        </div>
-
-        <div class="card-footer pt-1 pb-1">
-          <small>📅 Submitted at: {{ leave.submittedAt }}</small>
         </div>
       </div>
 
-      <!-- Pagination -->
-      <div class="text-center mt-3">
-        <button class="btn btn-outline-primary btn-sm me-2" (click)="prevPage()" [disabled]="currentPage === 1">Prev</button>
-        <span>Page {{ currentPage }} of {{ getTotalPages() }}</span>
-        <button class="btn btn-outline-primary btn-sm ms-2" (click)="nextPage()" [disabled]="currentPage === getTotalPages()">Next</button>
-      </div>
+      <!-- Fixed Pagination -->
+      <nav *ngIf="getTotalPages() > 1" class="mt-2" style="flex: 0 0 auto;">
+        <ul class="pagination justify-content-center mb-0">
+          <li class="page-item" [class.disabled]="currentPage === 1">
+            <button class="page-link" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">«</button>
+          </li>
+          <li class="page-item" *ngFor="let page of totalPagesArray" [class.active]="page === currentPage">
+            <button class="page-link" (click)="goToPage(page)">{{ page }}</button>
+          </li>
+          <li class="page-item" [class.disabled]="currentPage === getTotalPages()">
+            <button class="page-link" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === getTotalPages()">»</button>
+          </li>
+        </ul>
+      </nav>
+
     </div>
   </div>
 </div>
