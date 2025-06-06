@@ -119,7 +119,7 @@ body, html {
   }
   
   .login-card button:hover {
-    background-color: #303f9f;
+    background-color: #EFDFA1;
   }
   
   .logo {
@@ -165,4 +165,45 @@ body, html {
       font-size: 13px;
     }
   }
+
+  .input-wrapper {
+  position: relative;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.input-wrapper .icon {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: #777;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.input-wrapper input {
+  width: 100%;
+  padding: 10px 10px 10px 34px; /* 👈 KEY: Add left padding for icon */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+/* Optional: mobile tweaks */
+@media (max-width: 480px) {
+  .input-wrapper input {
+    font-size: 13px;
+    padding-left: 40px;
+  }
+
+  .input-wrapper .icon {
+    left: 10px;
+    font-size: 14px;
+  }
+}
+
+
   

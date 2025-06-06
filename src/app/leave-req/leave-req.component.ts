@@ -137,39 +137,45 @@ onDateChange(type: 'start' | 'end') {
   }
 
   validateTimes() {
-    this.startTimeError = false;
-    this.endTimeError = false;
-  
-    const now = new Date();
-  
-    if (this.leaveData.startTime) {
-      const [startHour, startMinute] = this.leaveData.startTime.split(':').map(Number);
-  
-      const selectedStart = new Date(now);
-      selectedStart.setHours(startHour, startMinute, 0, 0);
-  
-      console.log('🕒 Now:', now.toLocaleString());
-      console.log('🕒 Selected Local Start Time:', selectedStart.toLocaleString());
-  
-      if (selectedStart.getTime() <= now.getTime()) {
-        console.log('❌ Start time is in the past!');
-        this.startTimeError = true;
+  this.startTimeError = false;
+  this.endTimeError = false;
+
+  const now = new Date();
+
+  if (this.leaveData.startTime) {
+    const [startHour, startMinute] = this.leaveData.startTime.split(':').map(Number);
+
+    const selectedStart = new Date(now);
+    selectedStart.setHours(startHour, startMinute, 0, 0);
+
+    if (selectedStart.getTime() <= now.getTime()) {
+      this.startTimeError = true;
+      console.log('❌ Start time is in the past!');
+    }
+
+    if (this.leaveData.endTime) {
+      const [endHour, endMinute] = this.leaveData.endTime.split(':').map(Number);
+      const selectedEnd = new Date(now);
+      selectedEnd.setHours(endHour, endMinute, 0, 0);
+
+      if (selectedEnd.getTime() <= selectedStart.getTime()) {
+        this.endTimeError = true;
+        console.log('❌ End time is before or equal to start time!');
       }
-  
-      if (this.leaveData.endTime) {
-        const [endHour, endMinute] = this.leaveData.endTime.split(':').map(Number);
-        const selectedEnd = new Date(now);
-        selectedEnd.setHours(endHour, endMinute, 0, 0);
-  
-        console.log('🕒 Selected Local End Time:', selectedEnd.toLocaleString());
-  
-        if (selectedEnd.getTime() <= selectedStart.getTime()) {
-          console.log('❌ End time is before or equal to start time!');
-          this.endTimeError = true;
-        }
+
+      // ✅ Check if end time exceeds 3 hours from start time
+      const diffInMs = selectedEnd.getTime() - selectedStart.getTime();
+      const diffInHours = diffInMs / (1000 * 60 * 60);
+
+      if (diffInHours > 3) {
+        this.endTimeError = true;
+        alert('⏰ End time should not exceed 3 hours from start time.');
+        this.leaveData.endTime = '';
       }
     }
   }
+}
+
   
   
   

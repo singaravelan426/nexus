@@ -150,7 +150,7 @@ this.formattedTotalDuration = this.formatSecondsToHHMMSS(this.totalWorkSeconds);
           fill: false,
           borderColor: 'rgba(75, 192, 192, 1)',
           backgroundColor: 'rgba(75, 192, 192, 0.2)',
-          tension: 0.3
+          tension:0.3
         }]
       },
       options: {
@@ -199,6 +199,9 @@ this.formattedTotalDuration = this.formatSecondsToHHMMSS(this.totalWorkSeconds);
     Reason: req.reason || '',
     Status: req.status || '',
     'Submitted At': req.submittedAt,
+    'Total Request Leave':req.totalLeaveRequest,
+    'Holidays':req.countOfHolidays,
+    'Total Leaves':req.countOfLeaves,
     'Admin Comment': req.adminComment,
   }));
 

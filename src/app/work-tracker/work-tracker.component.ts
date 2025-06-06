@@ -12,7 +12,7 @@ import { saveAs } from 'file-saver-es';
 import { NgZone } from '@angular/core';
 import { inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { InactivityService } from '../services/inactivity.service';
+// import { InactivityService } from '../services/inactivity.service';
 @Component({
   standalone: true,
   selector: 'app-work-tracker',
@@ -38,6 +38,7 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
   alertMessage: string = '';
   totalDurationInSeconds: number = 0;
   chartType: 'bar' = 'bar';
+  loading = false;
 
 
   private timerSub: Subscription | null = null;
@@ -51,19 +52,21 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
   isAdminMain=false;
   private startTimestamp: number = 0;
 
-  constructor(private cdr: ChangeDetectorRef, private ngZone: NgZone,private inactivityService: InactivityService) {}
+  constructor(private cdr: ChangeDetectorRef, private ngZone: NgZone) {}
 
   ngOnInit() {
-    this.inactivityService.startMonitoring(() => {
-    if (this.isTimerRunning) {
-      this.stopWorkTimerAndSave();
-    }
-    localStorage.removeItem('workTimerState');
-    signOut(this.auth).then(() => {
-      this.router.navigate(['/login']);
+  //   this.inactivityService.startMonitoring(() => {
+  //   if (this.isTimerRunning) {
+  //     this.stopWorkTimerAndSave();
+  //   }
+  //   localStorage.removeItem('workTimerState');
+  //   signOut(this.auth).then(() => {
+  //     this.router.navigate(['/login']);
       
-    });
-  }, 60000);
+  //   });
+  // }, 60000);
+
+  
 
     const savedState = localStorage.getItem('workTimerState');
     if (savedState) {
@@ -160,36 +163,57 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
 
  onAvatarOptionChange() {
   switch (this.avatarOption) {
+
     case 'option1':
-      this.router.navigate(['/admin']);
+      this.loading=true;
+      setTimeout(() => {
+        this.router.navigate(['/admin']);
+      }, 500); 
       break;
 
     case 'option2':
+
+        this.loading=true;
+       setTimeout(() => {
       this.router.navigate(['/add-admin']);
+       }, 500); 
       break;
 
     case 'option3':
+      this.loading=true;
+      setTimeout(() => {
       const fileInput = document.getElementById('avatarFileInput') as HTMLInputElement;
+      this.loading=false;
       if (fileInput) {
         fileInput.click();
       }
+       }, 500);
       break;
 
     case 'option5':
+      this.loading = true; 
+      setTimeout(() => {
       this.removeProfilePicture();
+       }, 500);
       break;
 
     case 'option6':
+     this.loading = true; 
+     setTimeout(() => {
       this.router.navigate(['/status']);
+       }, 500);
       break;
 
     case 'option7':
      
-
+      this.loading = true; 
+      setTimeout(() => {
       const confirmLogout = window.confirm('Are you sure you want to logout?');
+       this.loading = false;
       if (confirmLogout) {
         this.logout();
       }
+       }, 500);
       break;
   }
 
@@ -225,6 +249,7 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
 
   removeProfilePicture() {
     const confirmed = window.confirm('Are you sure you want to delete your profile picture?');
+    this.loading=false;
 if (confirmed) {
     const db = getDatabase();
     const imageRef = ref(db, `profile-images/${this.username}`);
@@ -236,28 +261,54 @@ if (confirmed) {
 }
 
 
-  logout() {
-  if (this.isTimerRunning) {
+// logout dropdown
 
-  alert('⏳ Please stop the timer before logging out.');
+ logout() {
+  if (this.isTimerRunning) {
+    alert('⏳ Please stop the timer before logging out.');
     return;
-   
   }
 
+  // Clean local work timer state
   localStorage.removeItem('workTimerState');
 
-  signOut(this.auth)
-    .then(() => {
-      this.showSuccessAlert('👋 Logged out successfully.');
-      this.router.navigate(['/login']);
-    })
-    .catch((error) => {
-      console.error('Logout error:', error);
-      this.showSuccessAlert('❌ Logout failed.');
-    });
+  // Get auth and UID
+  const user = this.auth.currentUser;
+  if (user) {
+    const uid = user.uid;
+    const db = getDatabase();
+    const tokenRef = ref(db, `activeTokens/${uid}`);
+
+    // Remove token from Firebase
+    set(tokenRef, null)
+      .then(() => {
+        localStorage.removeItem('sessionToken');
+
+        // Now sign out
+        return signOut(this.auth);
+      })
+      .then(() => {
+        this.showSuccessAlert('👋 Logged out successfully.');
+        this.router.navigate(['/login']);
+      })
+      .catch((error) => {
+        console.error('Logout error:', error);
+        this.showSuccessAlert('❌ Logout failed.');
+      });
+  } else {
+    this.showSuccessAlert('❌ No active session.');
+  }
 }
 
+// Leave page navigate (leave button)
+ goToLeavePage() {
+     this.loading = true; 
+     setTimeout(() => {
+    this.router.navigate(['/leave']);
+    }, 500);
+  }
 
+//chart data
 
  chartData: ChartData<'bar'> = {
   labels: [],
@@ -276,15 +327,19 @@ chartOptions: ChartOptions<'bar'> = {
   scales: {
     x: {
       title: { display: true, text: 'Date' },
-      ticks: { maxRotation: 45, minRotation: 30 }
+      ticks: { maxRotation: 45, minRotation: 30 },
+      grid: { display: false },
+      // Make bars take up more width
+      stacked: false
     },
     y: {
       title: { display: true, text: 'Working Seconds (HH:MM:SS)' },
       suggestedMin: 0,
       ticks: {
-        stepSize: 1800, // 30 minutes in seconds
+        stepSize: 1800,
         callback: (value: any) => this.secondsToHHMMSS(value)
-      }
+      },
+      grid: { display: true }
     }
   },
   plugins: {
@@ -312,14 +367,30 @@ loadWorkLogs() {
   let totalSeconds = 0;
 
   get(workLogsRef).then((workSnapshot) => {
-    const workData = workSnapshot.exists() ? workSnapshot.val() : {};
+  const workData = workSnapshot.exists() ? workSnapshot.val() : {};
 
-    // Process work logs
-    for (const key in workData) {
-      const log = workData[key];
-      if (log.email === this.userEmail) {
-        const [day, month, year] = log.date.split('/');
-        const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  const logsByDate: { [date: string]: { workSeconds: number } } = {};
+  let totalSeconds = 0;
+
+  const today = new Date();
+  const recentDatesSet = new Set<string>();
+
+  // Collect last 8 ISO dates
+  for (let i = 0; i < 8; i++) {
+    const date = new Date();
+    date.setDate(today.getDate() - i);
+    const iso = date.toISOString().split('T')[0]; // YYYY-MM-DD
+    recentDatesSet.add(iso);
+  }
+
+  // Process work logs
+  for (const key in workData) {
+    const log = workData[key];
+    if (log.email === this.userEmail) {
+      const [day, month, year] = log.date.split('/');
+      const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+
+      if (recentDatesSet.has(isoDate)) {
         const durationSeconds = this.durationToSeconds(log.duration);
 
         if (!logsByDate[isoDate]) logsByDate[isoDate] = { workSeconds: 0 };
@@ -327,33 +398,39 @@ loadWorkLogs() {
         totalSeconds += durationSeconds;
       }
     }
+  }
 
-    // Sort and prepare chart data
-    const sortedDates = Object.keys(logsByDate).sort();
-    const labels: string[] = [];
-    const workDataPoints: number[] = [];
+  // Sort and prepare chart data
+  const sortedDates = Array.from(recentDatesSet).sort();
+  const labels: string[] = [];
+  const workDataPoints: number[] = [];
 
-    for (const isoDate of sortedDates) {
-      const [year, month, day] = isoDate.split('-');
-      labels.push(`${day}/${month}/${year}`);
+  for (const isoDate of sortedDates) {
+    const [year, month, day] = isoDate.split('-');
+    labels.push(`${day}/${month}/${year}`);
 
-      const workSeconds = logsByDate[isoDate].workSeconds || 0;
-     workDataPoints.push(workSeconds);
+    const workSeconds = logsByDate[isoDate]?.workSeconds || 0;
+    workDataPoints.push(workSeconds);
+  }
+
+  this.chartData = {
+  labels,
+  datasets: [
+    {
+      label: 'Working Seconds',
+      data: workDataPoints,
+      backgroundColor: 'blue',
+      barThickness: 30, // 🔧 Controls bar width
+      // Alternatively, you can use these instead:
+      categoryPercentage: 0.8,
+      barPercentage: 0.9,
     }
+  ]
+};
 
-    this.chartData = {
-      labels,
-      datasets: [
-        {
-          label: 'Working Seconds',
-          data: workDataPoints,
-          backgroundColor: 'blue'
-        }
-      ]
-    };
+  this.totalDurationInSeconds = totalSeconds;
+});
 
-    this.totalDurationInSeconds = totalSeconds;
-  });
 }
 
 
@@ -416,6 +493,8 @@ loadWorkLogs() {
     }
   }
 
+  // timer satrt (toggle button)
+
   startWorkTimer() {
     this.startTimestamp = Date.now();
     this.startTime = this.formatDate(new Date());
@@ -436,24 +515,31 @@ loadWorkLogs() {
       this.currentTimer = this.formatTime(this.secondsElapsed);
     });
   }
+
+
   
+// stop timer(toggle button) and data store db
 
   stopWorkTimerAndSave() {
+  this.loading = true;
+
+  setTimeout(() => {
     const now = Date.now();
     const elapsedMs = now - this.startTimestamp;
     this.secondsElapsed = Math.floor(elapsedMs / 1000);
     this.currentTimer = this.formatTime(this.secondsElapsed);
-  
+
     this.endTime = this.formatDate(new Date());
     this.submittedAt = this.formatDate(new Date());
-  
+
     if (!this.selectedLocation) {
       this.locationError = true;
+      this.loading = false;
       return;
     }
-  
+
     if (this.timerSub) this.timerSub.unsubscribe();
-  
+
     const db = getDatabase();
     const workLog = {
       email: this.userEmail,
@@ -465,8 +551,9 @@ loadWorkLogs() {
       date: this.formatDate(new Date(), true),
       submittedAt: this.submittedAt
     };
-  
+
     const logsRef = ref(db, 'work-logs');
+
     push(logsRef, workLog)
       .then(() => {
         this.showSuccessAlert('✅ Work log saved successfully!');
@@ -475,12 +562,16 @@ loadWorkLogs() {
       .catch(err => {
         console.error('Error saving log:', err);
         this.showSuccessAlert('❌ Error saving work log.');
+      })
+      .finally(() => {
+        this.loading = false;
       });
-  
+
     this.currentTimer = '00:00:00';
-     // Clear saved state
-  localStorage.removeItem('workTimerState');
-  }
+    localStorage.removeItem('workTimerState');
+  }, 500); // 500ms delay before saving
+}
+
   
 
   showSuccessAlert(message: string) {
@@ -514,67 +605,105 @@ loadWorkLogs() {
 }
   
 
-  goToLeavePage() {
-    this.router.navigate(['/leave']);
-  }
+ 
 
   ngOnDestroy() {
     if (this.timerSub) this.timerSub.unsubscribe();
     if (this.refreshSub) this.refreshSub.unsubscribe();
   }
 
+
+
+  // Report download 
+
   downloadExcelReport() {
+  this.loading = true;
+
+  setTimeout(() => {
     const db = getDatabase();
     const logsRef = ref(db, 'work-logs');
-    get(logsRef).then(snapshot => {
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        const userLogs = [];
 
-        for (const key in data) {
-          const log = data[key];
-          if (log.email === this.userEmail) {
-            userLogs.push({
-              Date: log.date,
-              'Project Title' :log.projectTitle,
-              'Start Time': log.startTime,
-              'End Time': log.endTime,
-              Duration: log.duration,
-              Location: log.location,
-            });
+    get(logsRef)
+      .then(snapshot => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const userLogs = [];
+
+          for (const key in data) {
+            const log = data[key];
+            if (log.email === this.userEmail) {
+              userLogs.push({
+                Date: log.date,
+                'Project Title': log.projectTitle,
+                'Start Time': log.startTime,
+                'End Time': log.endTime,
+                Duration: log.duration,
+                Location: log.location,
+              });
+            }
           }
+
+          if (userLogs.length === 0) {
+            this.showSuccessAlert('⚠️ No work logs available for download.');
+            this.loading = false;
+            return;
+          }
+
+          const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(userLogs);
+          const workbook: XLSX.WorkBook = {
+            Sheets: { 'Work Logs': worksheet },
+            SheetNames: ['Work Logs']
+          };
+
+          const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+          const blob: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+          const fileName = `WorkLogs-${this.username}-${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+          saveAs(blob, fileName);
+        } else {
+          this.showSuccessAlert('⚠️ No work logs found.');
         }
+      })
+      .catch(error => {
+        console.error('Error fetching logs:', error);
+        this.showSuccessAlert('❌ Failed to generate report.');
+      })
+      .finally(() => {
+        this.loading = false;
+      });
 
-        if (userLogs.length === 0) {
-          this.showSuccessAlert('⚠️ No work logs available for download.');
-          return;
-        }
+  }, 1000); // 1000ms delay before processing
+}
 
-        const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(userLogs);
-        const workbook: XLSX.WorkBook = {
-          Sheets: { 'Work Logs': worksheet },
-          SheetNames: ['Work Logs']
-        };
+gotoviewwork(email: string): void {
+  this.router.navigate(['/work-detail'], {
+    queryParams: { email }
+  });
+}
 
-        const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-        const blob: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-        const fileName = `WorkLogs-${this.username}-${new Date().toISOString().slice(0, 10)}.xlsx`;
+  
+//tap or browser close confirm msg
 
-        saveAs(blob, fileName);
-      } else {
-        this.showSuccessAlert('⚠️ No work logs found.');
-      }
-    }).catch(error => {
-      console.error('Error fetching logs:', error);
-      this.showSuccessAlert('❌ Failed to generate report.');
-    });
-  }
   @HostListener('window:beforeunload', ['$event'])
 onBeforeUnload(event: BeforeUnloadEvent) {
   if (this.isTimerRunning) {
     event.preventDefault();
-   
     event.returnValue = '';
+  }
+
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  if (user) {
+    const uid = user.uid;
+    const db = getDatabase();
+    const tokenRef = ref(db, `activeTokens/${uid}`);
+
+    // Remove session token from Firebase Realtime DB
+    set(tokenRef, null);
+
+    // Optional: clear localStorage
+    localStorage.removeItem('sessionToken');
   }
 }
 

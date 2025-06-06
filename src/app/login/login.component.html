@@ -6,26 +6,26 @@
     <form (ngSubmit)="login()" #loginForm="ngForm">
      
       <div class="input-wrapper">
-        <i class="fa-solid fa-envelope icon"></i>
-        <input
-          type="email"
-          name="email"
-          [(ngModel)]="email"
-          placeholder="Email"
-          required
-        />
-      </div>
-      
-      <div class="input-wrapper">
-        <i class="fa-solid fa-lock icon"></i>
-        <input
-          type="password"
-          name="password"
-          [(ngModel)]="password"
-          placeholder="Password"
-          required
-        />
-      </div>
+  <i class="fa-solid fa-envelope icon"></i>
+  <input
+    type="email"
+    name="email"
+    [(ngModel)]="email"
+    placeholder="Email"
+    required
+  />
+</div>
+
+<div class="input-wrapper">
+  <i class="fa-solid fa-lock icon"></i>
+  <input
+    type="password"
+    name="password"
+    [(ngModel)]="password"
+    placeholder="Password"
+    required
+  />
+</div>
       
     
       <button type="submit">Login</button>

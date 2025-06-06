@@ -107,5 +107,9 @@
     font-weight: bold;
     font-size: 14px;
   }
+.error-border {
+  border: 2px solid red;
+}
+ 
   
   

@@ -1,92 +1,55 @@
-.container {
-  max-width: 900px;
-  margin:auto;
-  padding: 1rem;
-  background-color: white;
+/* Card Shadow & Layout */
+.card {
+  border: none;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 }
 
-
-.title {
-  text-align: center;
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
-  color: #333;
+/* Status Badge Styling */
+.badge {
+  font-size: 0.75rem;
+  padding: 0.4em 0.6em;
+  font-weight: 600;
+  transition: all 0.3s ease;
 }
 
+/* Smooth active tab transitions */
+.btn.active-tab,
+.btn.bg-dark {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Leave Card Styling */
+.leave-card .card {
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.card-header,
+.card-footer {
+  background-color: #f9f9f9;
+}
+
+.card-body {
+  font-size: 0.875rem;
+}
+
+/* Empty message styling */
 .empty-message {
   text-align: center;
-  font-size: 1.2rem;
-  color: #666;
-}
-
-.leave-card {
-  background:white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: transform 0.2s ease;
-  
-}
-
-.leave-card:hover {
-  transform: translateY(-4px);
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-
-}
-
-.status-badge {
-  padding: 0.4rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.pending {
-  background-color: #e69727;
-  color: black;
-}
-
-.approved {
-  background-color: #13c144;
-  color:black;
-}
-
-.rejected {
-  background-color: #dc3545;
-  color: black;
-}
-
-.card-body p {
-  margin: 0.3rem 0;
-  color: #555;
-  
-}
-
-.card-footer {
-  margin-top: 1rem;
-  text-align: right;
-  font-size: 0.85rem;
+  margin-top: 3rem;
   color: #888;
+  font-size: 1rem;
 }
 
-.active-tab {
-  background-color: #CEA763 !important;
-  color: black !important;
-  border-color: #CEA763 !important;
+/* Responsive scrollbar area */
+.overflow-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #ccc transparent;
 }
-
-.btn-custom:hover,
-.btn-custom:focus,
-.btn-custom:active {
-  background-color: #EFDFA1 !important;
-  color: black !important;
-  border-color: #EFDFA1 !important;
+.overflow-auto::-webkit-scrollbar {
+  width: 6px;
+}
+.overflow-auto::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
 }

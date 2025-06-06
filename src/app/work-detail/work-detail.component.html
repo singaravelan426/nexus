@@ -16,6 +16,9 @@
       </h3>
     </div>
 
+
+   
+
     <!-- Visit Stats -->
     <div class="row text-center mb-4">
       <div class="col-6">
@@ -37,10 +40,7 @@
       <canvas id="workChart" height="130"></canvas>
     </div>
 
-    <!--<div class="total-duration">
-  <strong>Total Work Duration:</strong> {{ formattedTotalDuration }}(hh:mm:ss)
-</div>--> 
-
+   
 
     <!-- Hour Summary -->
     <div class="row text-center mb-3">
@@ -51,6 +51,7 @@
           <div class="fw-bold">{{ onsiteHours }}</div>
         </div>
       </div>
+      
       <div class="col-6">
         <div class="d-flex flex-column align-items-center">
           <div class="progress-circle text-warning mb-1">{{ offsitePercentage }}%</div>
@@ -62,8 +63,23 @@
    
 
     <!-- Download Button -->
-   <div class="text-end pt-2">
+
+     <!-- <div class="text-center px-2 py-1 rounded shadow-sm" 
+     style="background: linear-gradient(to right, #e0f7fa, #e0f2f1); border: 1px solid #b2dfdb;">
+  <div class="d-flex justify-content-center align-items-center mb-1">
+    <i class="bi bi-stopwatch-fill text-primary me-2" style="font-size: 1.3rem;"></i>
+    <span class="fw-semibold text-dark" style="font-size: 1rem; font-family: 'Segoe UI', sans-serif;">
+      Total Work Duration: {{ formattedTotalDuration }}
+    </span>
+  </div>
+  <div>
+  
+  </div>
+</div> -->
+
+<div class="text-end pt-2">
   <button class="btn btn-outline-dark" (click)="downloadExcel()">Download Report</button>
 </div>
+   
   </div>
 </div>

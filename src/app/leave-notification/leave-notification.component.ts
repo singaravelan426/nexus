@@ -120,4 +120,6 @@ export class LeaveNotificationComponent implements OnInit {
     this.router.navigate(['/leave-detail', request.key]);
   }
 
+  
+
 }

@@ -4,38 +4,128 @@
   <!-- Inner Content Container - White background, flexible height -->
   <div class="container bg-white rounded flex-grow-1 d-flex flex-column " >
 
-    <!-- Logo Top Right -->
-    <div class="text-end mb-2 mt-3">
-      <a [routerLink]="['/worklog']">
-        <img src="assets/logo.png" alt="Logo" style="width: 100px; height: auto; cursor: pointer;">
-      </a>
-    </div>
+     <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
+  <!-- Icon on the left -->
+  <a [routerLink]="['/notification']">
+    <i class="fa-solid fa-angle-left" style="font-size: 24px; cursor: pointer; "></i>
+  </a>
+
+  <!-- Logo on the right -->
+  <a [routerLink]="['/worklog']">
+    <img src="assets/logo.png" alt="Logo" style="width: 100px; height: auto; cursor: pointer;">
+  </a>
+</div>
 
     <!-- Leave Request Content -->
-    <div *ngIf="request" class="flex-grow-1 overflow-auto mb-3">
-      <h4>{{ request.employeeName }}</h4>
-
-      <div style="border: 3px solid #d4d4d3; padding: 12px; border-radius: 8px; margin-bottom: 20px;">
-        
+     <div class="d-flex justify-content-between align-items-center mb-0 mt-4">
+        <h4 class="mb-0 text-primary">
+          <i class="fa-solid fa-user fa-5"></i> {{ request.employeeName }}
+        </h4>
         <!-- Status Badge -->
-        <div class="text-end mb-2">
-          <span class="status-badge {{ request.status }}">{{ request.status | uppercase }}</span>
+        <span
+          class="badge px-3 py-2 text-uppercase fw-semibold"
+          [ngClass]="{
+            'bg-success': request.status === 'approved',
+            'bg-danger': request.status === 'rejected',
+            'bg-warning text-dark': request.status === 'pending'
+          }"
+        >
+          {{ request.status }}
+        </span>
+      </div>
+      <!-- Divider -->
+      <hr />
+
+       <!-- Type of Request -->
+      <div class="mb-0" style="margin-left: 2px; padding-left: 2px;">
+        <p><strong>Leave Type:</strong><span class="badge bg-info text-dark px-2 py-1">  {{ request.type }}</span></p>
+        
+      </div>
+
+         <!-- Leave Details -->
+      <ng-container *ngIf="request.type === 'Leave'">
+        <div class="row">
+          <div class=" col-md-6 ">
+            <p class="mb-0 mt-0">
+              <strong><i class="bi bi-calendar-plus me-1"></i>  Start Date:</strong>
+               {{ request.startDate }}
+            </p>
+          </div>
+          <div class="col-md-6">
+            <p class="mb-0">
+              <strong><i class="bi bi-calendar-minus me-1"></i>End Date:</strong>
+              {{ request.endDate }}
+            </p>
+          </div>
         </div>
+      </ng-container>
 
-        <!-- Leave Type Details -->
-        <ng-container *ngIf="request.type === 'Leave'">
-          <p class="compact-paragraph"><strong>START DATE:</strong> {{ request.startDate }}</p>
-          <p class="compact-paragraph"><strong>END DATE:</strong> {{ request.endDate }}</p>
-        </ng-container>
+         <!-- Permission Details -->
+      <ng-container *ngIf="request.type === 'Permission'">
+        <div class="row">
+          <div class=" col-md-6">
+            <p class="mb-0">
+              <strong><i class="bi bi-clock me-1"></i>Start Time:</strong>
+              {{ request.startTime }}
+            </p>
+          </div>
+          <div class="col-md-6">
+            <p class="mb-0">
+              <strong><i class="bi bi-clock-history me-1"></i>End Time:</strong>
+              {{ request.endTime }}
+            </p>
+          </div>
+        </div>
+      </ng-container>
 
-        <!-- Permission Type Details -->
-        <ng-container *ngIf="request.type === 'Permission'">
-          <p class="compact-paragraph"><strong>START TIME:</strong> {{ request.startTime }}</p>
-          <p class="compact-paragraph"><strong>END TIME:</strong> {{ request.endTime }}</p>
-        </ng-container>
+        
+        <p style="margin-left: 2px; padding-left: 2px;"><strong>Reason:</strong> {{ request.reason }}</p>
 
-        <p><strong>Type:</strong> {{ request.type }}</p>
-        <p><strong>Reason:</strong> {{ request.reason }}</p>
+        <!-- Leave Dates Summar -->
+
+         <ng-container *ngIf="request.type === 'Leave'">
+  <div class="card shadow-sm border-0 mt-2">
+    <div class="card-header bg-primary text-white">
+      <h6 class="mb-0">Leave Dates Summary</h6>
+    </div>
+
+    <!-- Scrollable List Container -->
+
+    <div class="card-body pb-2" style="max-height: 150px; overflow-y: auto;">
+      <ul class="list-group">
+        <li
+          *ngFor="let day of leaveDates"
+          class="list-group-item d-flex justify-content-between align-items-center"
+        >
+          <span>
+            <i class="bi bi-calendar-event-fill text-primary me-2"></i>
+            {{ day.date }}
+          </span>
+          <span
+            *ngIf="day.isHoliday"
+            class="badge bg-danger rounded-pill"
+            title="This day is a holiday"
+          >
+            Holiday
+          </span>
+          <span
+            *ngIf="!day.isHoliday"
+            class="badge bg-success rounded-pill"
+            title="This day is not a holiday"
+          >
+            Working Day
+          </span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="card-footer bg-light text-muted text-end">
+      <small>Total Days: {{ totalLeaveRequest }} | Holidays: {{ totalHolidays }} | Effective Leave: {{ totalLeaves }}</small>
+    </div>
+  </div>
+</ng-container>
+
+
 
         <!-- Pending Status Input -->
         <div *ngIf="request.status === 'pending'" class="mt-3">
@@ -60,11 +150,11 @@
         </div>
 
         <!-- Approved/Rejected Display -->
-        <div *ngIf="request.status !== 'pending'" class="mt-3">
+        <div *ngIf="request.status !== 'pending'" class="mt-4">
           <p><strong>Admin Comment:</strong> {{ request.adminComment || 'No comment provided.' }}</p>
         </div>
 
+
       </div>
     </div>
-  </div>
-</div>
+ 

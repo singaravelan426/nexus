@@ -1,89 +1,85 @@
 <div *ngIf="!isLoading">
-  <!-- Outer Card -->
-  <div class="card shadow-sm p-2 mb-2 rounded" 
-       style="max-width: 540px; height: 100vh; margin: auto; background-color: #d4d4d3;">
-
+   <div class="card shadow-sm p-2 mb-2 rounded" style="max-width: 540px; height: 100vh; margin: auto; background-color: #d4d4d3;">
     <!-- Inner White Card -->
-    <div class="card shadow-sm p-2 mb-1 bg-white rounded d-flex flex-column" style="height: 97vh;">
+   
+    <!-- Header Section -->
+     <div class="card shadow-sm p-3 mb-1 bg-white rounded" style="height: 97vh;">
 
-      <!-- Logo -->
-      <div class="text-end mb-1" style="flex: 0 0 auto;">
+
+      <!-- Top Bar: Back Icon + Logo -->
+      <div class="d-flex justify-content-between align-items-center mb-3">
         <a [routerLink]="['/worklog']">
-          <img src="assets/logo.png" alt="Logo" style="width: 100px; height: auto; cursor: pointer;">
+          <i class="fa-solid fa-angle-left fs-4 text-dark" style="cursor: pointer;"></i>
+        </a>
+        <a [routerLink]="['/worklog']">
+          <img src="assets/logo.png" alt="Logo" style="height: 40px; cursor: pointer;">
         </a>
       </div>
 
-      <!-- Tab Filter Buttons -->
-      <div class="d-flex justify-content-center gap-2 my-2 flex-wrap" style="flex: 0 0 auto;">
-        <button 
-    class="btn btn-outline-dark px-3 py-1 rounded-pill fw-semibold btn-custom" style="background-color: #CEA763; color: black; " 
-    [class.active-tab]="selectedTab === 'all'" 
-    (click)="selectTab('all')">All</button>
-    
-  <button 
-    class="btn btn-outline-secondary px-3 py-1 rounded-pill fw-semibold btn-custom" style="background-color: #CEA763; color: black;"
-    [class.active-tab]="selectedTab === 'pending'" 
-    (click)="selectTab('pending')">Pending</button>
-
-  <button 
-    class="btn btn-outline-success px-3 py-1 rounded-pill fw-semibold btn-custom" style="background-color: #CEA763; color: black;"
-    [class.active-tab]="selectedTab === 'approved'" 
-    (click)="selectTab('approved')">Approved</button>
-
-  <button 
-    class="btn btn-outline-danger px-3 py-1 rounded-pill fw-semibold btn-custom" style="background-color: #CEA763; color: black;" 
-    [class.active-tab]="selectedTab === 'rejected'" 
-    (click)="selectTab('rejected')">Rejected</button>
+      <!-- Filter Buttons -->
+      <div class="d-flex justify-content-center flex-wrap gap-2 mb-3">
+        <ng-container *ngFor="let tab of ['all', 'pending', 'approved', 'rejected']">
+          <button 
+            class="btn rounded-pill px-3 py-1 fw-medium"
+            [ngClass]="{
+              'bg-dark text-white': selectedTab === tab,
+              'bg-warning-subtle text-dark': selectedTab !== tab
+            }"
+            (click)="selectTab(tab)">
+            {{ tab | titlecase }}
+          </button>
+        </ng-container>
       </div>
 
       <!-- Title -->
-      <h6 class="title pt-1" style="flex: 0 0 auto;">Leave Request Status</h6>
+      <h6 class="text-center text-secondary fw-semibold mb-2">Leave Request Status</h6>
 
-      <!-- Scrollable leave card area -->
-      <div class="flex-grow-1 overflow-auto" style="min-height: 0;">
-        <div *ngIf="leaveRequests.length === 0" class="empty-message">
+      <!-- Leave Cards Scroll Area -->
+      <div class="overflow-auto flex-grow-1 px-1">
+        <div *ngIf="leaveRequests.length === 0" class="text-center text-muted mt-4">
+          <i class="fa-solid fa-inbox fs-1 mb-2"></i>
           <p>No leave requests found.</p>
         </div>
 
-        <!-- Leave Cards -->
-        <div *ngFor="let leave of paginatedLeaveRequests" class="leave-card pt-1 pb-0">
-          <div class="card-header pt-0 pb-0 d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">{{ leave.employeeName }}</h5>
-            <span class="status-badge badge rounded-pill text-uppercase" [ngClass]="leave.status">
-              {{ leave.status }}
-            </span>
-          </div>
-
-          <div class="card-body pt-0 pb-0">
-            <p><strong>Reason:</strong> {{ leave.reason }}</p>
-            <p><strong>Request Type:</strong> {{ leave.type }}</p>
-
-            <div *ngIf="leave.type === 'Leave'">
-              <p><strong>From:</strong> {{ leave.startDate }} <strong>To:</strong> {{ leave.endDate }}</p>
+        <div *ngFor="let leave of paginatedLeaveRequests" class="mb-3">
+          <div class="card shadow-sm rounded-3">
+            <div class="card-header d-flex justify-content-between align-items-center bg-light py-2 px-3">
+              <h6 class="mb-0">{{ leave.employeeName }}</h6>
+              <span class="badge text-uppercase px-2 py-1"
+                    [ngClass]="{
+                      'bg-secondary text-white': leave.status === 'pending',
+                      'bg-success text-white': leave.status === 'approved',
+                      'bg-danger text-white': leave.status === 'rejected'
+                    }">
+                {{ leave.status }}
+              </span>
             </div>
-
-            <div *ngIf="leave.type === 'Permission'">
-              <p><strong>From:</strong> {{ leave.startTime }} <strong>To:</strong> {{ leave.endTime }}</p>
+            <div class="card-body py-2 px-3">
+              <p class="mb-1"><strong>Request Type:</strong> {{ leave.type }}</p>
+               <p class="mb-1"><strong>Reason:</strong> {{ leave.reason }}</p>
+              <ng-container *ngIf="leave.type === 'Leave'">
+                <p class="mb-1"><strong>From:</strong> {{ leave.startDate }} <strong>To:</strong> {{ leave.endDate }}</p>
+              </ng-container>
+              <ng-container *ngIf="leave.type === 'Permission'">
+                <p class="mb-1"><strong>From:</strong> {{ leave.startTime }} <strong>To:</strong> {{ leave.endTime }}</p>
+              </ng-container>
+              <p class="mb-1" *ngIf="leave.countOfLeaves|| leave.countOfHolidays"><strong>Leaves:</strong> {{ leave.countOfLeaves }} <strong>Holidays:</strong>{{ leave.countOfHolidays }}</p>
+              <p *ngIf="leave.adminComment" class="mb-1"><strong>Admin Comment:</strong> {{ leave.adminComment }}</p>
             </div>
-
-            <div *ngIf="leave.adminComment">
-              <p><strong>Admin Comment:</strong> {{ leave.adminComment }}</p>
+            <div class="card-footer text-end py-1 px-3">
+              <small class="text-muted">📅 {{ leave.submittedAt }}</small>
             </div>
-          </div>
-
-          <div class="card-footer pt-1 pb-1">
-            <small>📅 Submitted at: {{ leave.submittedAt }}</small>
           </div>
         </div>
       </div>
 
-      <!-- Fixed Pagination -->
-      <nav *ngIf="getTotalPages() > 1" class="mt-2" style="flex: 0 0 auto;">
+      <!-- Pagination -->
+      <nav *ngIf="getTotalPages() > 1" class="pt-2">
         <ul class="pagination justify-content-center mb-0">
           <li class="page-item" [class.disabled]="currentPage === 1">
             <button class="page-link" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">«</button>
           </li>
-          <li class="page-item" *ngFor="let page of totalPagesArray" [class.active]="page === currentPage">
+          <li *ngFor="let page of totalPagesArray" class="page-item" [class.active]="currentPage === page">
             <button class="page-link" (click)="goToPage(page)">{{ page }}</button>
           </li>
           <li class="page-item" [class.disabled]="currentPage === getTotalPages()">
@@ -94,4 +90,5 @@
 
     </div>
   </div>
-</div>
+   </div>
+
