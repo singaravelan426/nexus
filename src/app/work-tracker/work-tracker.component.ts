@@ -149,17 +149,23 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
     });
   }
 
-  loadProfilePicture() {
-    const db = getDatabase();
-    const imageRef = ref(db, `profile-images/${this.username}`);
-    get(imageRef).then(snapshot => {
-      if (snapshot.exists()) {
-        this.profileImageUrl = snapshot.val();
-      } else {
-        this.profileImageUrl = null;
-      }
-    });
-  }
+ loadProfilePicture() {
+  const db = getDatabase();
+  const safeUsername = this.username.replace(/\./g, '_'); // Sanitize
+  const imageRef = ref(db, `profile-images/${safeUsername}`);
+  
+  get(imageRef).then(snapshot => {
+    if (snapshot.exists()) {
+      this.profileImageUrl = snapshot.val();
+    } else {
+      this.profileImageUrl = null;
+    }
+  }).catch(error => {
+    console.error('Error loading profile picture:', error);
+    this.profileImageUrl = null;
+  });
+}
+
 
  onAvatarOptionChange() {
   switch (this.avatarOption) {

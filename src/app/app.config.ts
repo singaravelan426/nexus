@@ -40,7 +40,7 @@ export const appConfig: ApplicationConfig = {
     FormsModule,
     CommonModule,
     AngularFireDatabaseModule, // 👈 Add this to use AngularFireDatabase
-
+    
     // Standalone components
   
    

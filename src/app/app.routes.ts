@@ -7,6 +7,7 @@ import { StatusComponent } from './status/status.component';
 import { LeaveNotificationComponent } from './leave-notification/leave-notification.component';
 import { AdminComponent } from './admin/admin.component';
 import { WorkDetailComponent } from './work-detail/work-detail.component';
+import { LopReportComponent } from './lop-report/lop-report.component';
 
 
 
@@ -27,5 +28,6 @@ export const routes: Routes = [
   {
     path: 'leave-detail/:id',
     loadComponent: () => import('./leave-detail/leave-detail.component').then(m => m.LeaveDetailComponent)
-  }
+  },{ path: 'lop-report', component: LopReportComponent }
+
 ];

@@ -1,0 +1,68 @@
+
+ <!-- Outer Card -->
+  <div class="card shadow-sm p-2 mb-2 rounded" style="max-width: 540px; height: 100vh; margin: auto; background-color: #d4d4d3;">
+    <!-- Inner White Card -->
+    <div class="card shadow-sm p-3 mb-1 bg-white rounded" style="height: 97vh;">
+<div class="d-flex justify-content-between align-items-center p-3">
+  <input
+    type="text"
+    class="form-control w-25"
+    placeholder="Search by email"
+    [(ngModel)]="filterText"
+  />
+
+  <button class="btn btn-primary" (click)="downloadCSV()">Download CSV</button>
+</div>
+
+<div class="table-responsive p-3">
+  <h3>Monthly LOP Summary</h3>
+  <table class="table table-bordered table-striped">
+   <thead class="table-dark">
+  <tr>
+    <th>Email</th>
+    <th>Month</th>
+    <th>Total Leave Request</th> <!-- New -->
+    <th>Holidays</th> <!-- New -->
+    <th>Total Leaves</th>
+    <th>Paid Leave</th>
+    <th>LOP Days</th>
+    
+    
+  </tr>
+</thead>
+<tbody>
+  <tr *ngFor="let row of paginatedReport">
+    <td>{{ row.email }}</td>
+    <td>{{ row.month }}</td>
+    <td>{{ row.totalLeaveRequest }}</td> <!-- New -->
+    <td>{{ row.countOfHolidays }}</td> <!-- New -->
+    <td>{{ row.totalLeaves }}</td>
+    <td class="text-success fw-semibold">{{ row.paidLeave }}</td>
+    <td [ngClass]="{ 'text-danger fw-bold': row.lop > 0 }">{{ row.lop }}</td>
+    
+    
+  </tr>
+</tbody>
+  </table>
+
+
+  <nav *ngIf="getTotalPages() > 1" class="pt-2">
+  <ul class="pagination justify-content-center mb-0">
+    <li class="page-item" [class.disabled]="currentPage === 1">
+      <button class="page-link" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">«</button>
+    </li>
+
+    <li *ngFor="let page of totalPagesArray" class="page-item" [class.active]="currentPage === page">
+      <button class="page-link" (click)="goToPage(page)">{{ page }}</button>
+    </li>
+
+    <li class="page-item" [class.disabled]="currentPage === getTotalPages()">
+      <button class="page-link" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === getTotalPages()">»</button>
+    </li>
+  </ul>
+</nav>
+
+</div>
+</div>
+</div>
+

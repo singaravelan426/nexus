@@ -15,38 +15,57 @@
 </div>
 
 
- <!-- User Avatar -->
-      <div class="d-flex justify-content-between align-items-center mb-0">
-        <div class="position-relative">
-          <label for="profileInput" class="d-block">
-            <div class="bg-secondary text-white rounded-circle d-flex justify-content-center align-items-center overflow-hidden"
-                 style="width: 110px; height: 110px; font-size: 3rem;">
-              <img *ngIf="profileImageUrl" [src]="profileImageUrl" alt="Profile" class="w-100 h-100 object-fit-cover">
-              <span *ngIf="!profileImageUrl">{{ userInitials }}</span>
-            </div>
-          </label>
-        </div>
+ 
+      <!-- User Avatar -->
+<div class="d-flex justify-content-between align-items-center mb-0 ">
+  <div class="position-relative"  style="margin-left: 20px;">
+    <label for="profileInput" class="d-block">
+      <div class="avatar-glow bg-secondary text-white rounded-circle d-flex justify-content-center align-items-center overflow-hidden"
+           style="width: 110px; height: 110px; font-size: 3rem;">
+        <img *ngIf="profileImageUrl" [src]="profileImageUrl" alt="Profile" class="w-100 h-100 object-fit-cover">
+        <span *ngIf="!profileImageUrl">{{ userInitials }}</span>
       </div>
+    </label>
+  </div>
+</div>
+
 
       <!-- Username -->
-      <div class="d-flex align-items-center justify-content-between mb-1 mt-1">
-        <div><h5 class="mb-0">{{ username }}</h5></div>
-      </div>
-
-
+      <div class="username-section d-flex align-items-start justify-content-start my-0"  >
+  <h5 class="username mb-0 px-4 py-1 rounded-pill shadow-sm">
+    {{ username }}
+  </h5>
+</div>
 
     <form (ngSubmit)="submitLeave()" #leaveForm="ngForm" class="leave-form">
       <!-- Leave Reason -->
       <div class="form-group pt-3">
-        <label for="reason">Reason</label>
-        <textarea id="reason" placeholder="Reason for Leave" [(ngModel)]="leaveData.reason" name="reason" required></textarea>
-      </div>
+  <label for="reason">Reason</label>
+  <textarea id="reason" placeholder="Reason for Leave" [(ngModel)]="leaveData.reason" name="reason" required></textarea>
+</div>
 
       <!-- Permission Checkbox -->
-      <div class="form-group permission-group">
-        <input type="checkbox" id="isPermission" [(ngModel)]="isPermission" name="isPermission" />
-        <label for="isPermission">Permission</label>
-      </div>
+    <div class="form-group text-center">
+  <div class="permission-toggle d-flex align-items-center justify-content-center gap-3">
+    <span class="toggle-label">Leave</span>
+
+    <div class="form-check form-switch m-0">
+      <input
+        type="checkbox"
+        class="form-check-input"
+        id="isPermission"
+        [(ngModel)]="isPermission"
+        name="isPermission"
+      />
+    </div>
+
+    <span class="toggle-label">Permission</span>
+  </div>
+</div>
+
+
+
+
 
       <!-- Leave Dates (if not permission) -->
     <div *ngIf="!isPermission">
@@ -96,7 +115,7 @@
       </div>
 
       <!-- Submit -->
-      <div class="form-group text-center mt-3">
+      <div class="form-group text-center mt-3 mb-0">
   <button 
     type="submit" 
     class="btn btn-submit px-4 py-2 rounded-pill fw-semibold"

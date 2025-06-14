@@ -97,10 +97,9 @@ onDateChange(type: 'start' | 'end') {
   }
 
   getInitials(email: string): string {
-    const name = email.split('@')[0];
-    const nameParts = name.split('.');
-    return nameParts.map(part => part.charAt(0).toUpperCase()).join('');
-  }
+  const parts = email.split('@')[0].split(/[._]/);
+  return parts.map(p => p[0].toUpperCase()).join('').substring(0, 2);
+}
 
   // Get the current user's email
   getCurrentUserEmail() {

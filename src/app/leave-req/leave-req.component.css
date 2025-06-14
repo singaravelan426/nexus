@@ -35,13 +35,13 @@
     margin-bottom: 15px;
   }
   
-  label {
-    font-size: 14px;
-    font-weight: bold;
-    margin-bottom: 5px;
-    display: block;
-    color: #333;
-  }
+ label {
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: inline-block;
+  color: #333;
+}
+
   
   input,
   textarea {
@@ -51,6 +51,7 @@
     border-radius: 4px;
     font-size: 14px;
     box-sizing: border-box;
+    background-color: #f8f9fa;
   }
   
   textarea {
@@ -91,22 +92,63 @@
   }
 
   
-  .permission-group {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-  }
-  
-  .permission-group input[type="checkbox"] {
-    margin-right: 8px;
-    width: auto;
-  }
-  
-  .permission-group label {
-    margin: 0;
-    font-weight: bold;
-    font-size: 14px;
-  }
+ .permission-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin: 10px 0;
+}
+
+.toggle-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-check-input {
+  width: 50px;
+  height: 26px;
+  background-color: #ccc;
+  border: none;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.form-check-input:checked {
+  background-color: #198754;
+  box-shadow: 0 0 8px #198754, inset 0 0 5px #145c32;
+}
+
+.username-section {
+  text-align: left;
+}
+
+.username {
+  background: linear-gradient(135deg, #4e73df, #1cc88a);
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease;
+}
+
+.username:hover {
+  transform: scale(1.02);
+}
+
+.avatar-glow {
+  box-shadow: 0 0 8px 1px rgba(28, 136, 138, 0.7); /* teal glow */
+  transition: box-shadow 0.3s ease;
+}
+
+.avatar-glow:hover {
+  box-shadow: 0 0 12px 2px rgba(28, 136, 138, 1); /* stronger glow on hover */
+}
+
+
+
 .error-border {
   border: 2px solid red;
 }
