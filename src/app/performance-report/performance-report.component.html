@@ -1,0 +1,40 @@
+<div class="container mt-4">
+  <h4 class="mb-3">Admin TAT Approval</h4>
+
+  <div class="mb-3">
+    <label>Select Date:</label>
+    <input type="date" [(ngModel)]="selectedDate" (change)="fetchTATData()" class="form-control w-auto" />
+  </div>
+
+  <table class="table table-bordered text-center">
+    <thead class="table-light">
+      <tr>
+        <th>Email</th>
+        <th>Project</th>
+        <th>Task</th>
+        <th>Start Time</th>
+        <th>End Time</th>
+        <th>Submitted TAT</th>
+        <th>Approved TAT</th>
+        <th>SLA</th>
+      </tr>
+    </thead>
+    <tbody>
+     <tr *ngFor="let item of records; let i = index"
+    [ngStyle]="{'background-color': i % 2 === 0 ? '#f8f9fa' : '#e3f2fd'}">
+        <td>{{ item.email }}</td>
+        <td>{{ item.projectTitle }}</td>
+        <td>{{ item.selectedTask }}</td>
+        <td>{{ item.startTime }}</td>
+        <td>{{ item.endTime }}</td>
+        <td>{{ item.submittedTAT }}</td>
+        <td><input type="number" [(ngModel)]="item.approvedTAT" class="form-control" /></td>
+        <td><input type="number" [(ngModel)]="item.sla" class="form-control" /></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="text-end">
+    <button class="btn btn-success" (click)="submitUpdates()">Submit</button>
+  </div>
+</div>

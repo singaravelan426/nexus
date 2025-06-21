@@ -18,6 +18,8 @@ import { RouterModule } from '@angular/router';
 })
 export class LeaveReqComponent implements OnInit {
 
+    activeTab: string = 'leaveReq'; 
+
   private router = inject(Router);
   leaveData = {
     employeeName: '',

@@ -1,20 +1,8 @@
 <div *ngIf="!isLoading">
-   <div class="card shadow-sm p-2 mb-2 rounded" style="max-width: 540px; height: 100vh; margin: auto; background-color: #d4d4d3;">
-    <!-- Inner White Card -->
    
     <!-- Header Section -->
-     <div class="card shadow-sm p-3 mb-1 bg-white rounded" style="height: 97vh;">
+     <div class="card " style="height: 77vh;">
 
-
-      <!-- Top Bar: Back Icon + Logo -->
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <a [routerLink]="['/worklog']">
-          <i class="fa-solid fa-angle-left fs-4 text-dark" style="cursor: pointer;"></i>
-        </a>
-        <a [routerLink]="['/worklog']">
-          <img src="assets/logo.png" alt="Logo" style="height: 40px; cursor: pointer;">
-        </a>
-      </div>
 
       <!-- Filter Buttons -->
       <div class="d-flex justify-content-center flex-wrap gap-2 mb-3">
@@ -31,12 +19,10 @@
         </ng-container>
       </div>
 
-      <!-- Title -->
-      <h6 class="text-center text-secondary fw-semibold mb-2">Leave Request Status</h6>
 
       <!-- Leave Cards Scroll Area -->
       <div class="overflow-auto flex-grow-1 px-1">
-        <div *ngIf="leaveRequests.length === 0" class="text-center text-muted mt-4">
+        <div *ngIf="leaveRequests.length === 0" class="text-center text-muted mt-2">
           <i class="fa-solid fa-inbox fs-1 mb-2"></i>
           <p>No leave requests found.</p>
         </div>
@@ -66,7 +52,7 @@
               <p class="mb-1" *ngIf="leave.countOfLeaves|| leave.countOfHolidays"><strong>Leaves:</strong> {{ leave.countOfLeaves }} <strong>Holidays:</strong>{{ leave.countOfHolidays }}</p>
               <p *ngIf="leave.adminComment" class="mb-1"><strong>Admin Comment:</strong> {{ leave.adminComment }}</p>
             </div>
-            <div class="card-footer text-end py-1 px-3">
+            <div class="card-footer text-end py-0 px-3">
               <small class="text-muted">📅 {{ leave.submittedAt }}</small>
             </div>
           </div>
@@ -74,7 +60,7 @@
       </div>
 
       <!-- Pagination -->
-      <nav *ngIf="getTotalPages() > 1" class="pt-2">
+      <nav *ngIf="getTotalPages() > 1" class="pt-0">
         <ul class="pagination justify-content-center mb-0">
           <li class="page-item" [class.disabled]="currentPage === 1">
             <button class="page-link" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">«</button>
@@ -90,5 +76,4 @@
 
     </div>
   </div>
-   </div>
 

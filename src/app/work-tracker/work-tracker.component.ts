@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, HostListener } from '@angular/core';
 import { Auth, getAuth, onAuthStateChanged, signOut } from '@angular/fire/auth';
-import { getDatabase, ref, push, get, remove, set } from '@angular/fire/database';
+import { getDatabase, ref, push, get, remove, set, onValue } from '@angular/fire/database';
 import { interval, Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -52,6 +52,24 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
   isAdminMain=false;
   private startTimestamp: number = 0;
 
+
+ filterType: string = 'weekly';
+customStartDate: string = '';
+customEndDate: string = '';
+showDropdown: boolean = false;
+
+  activeProjects: any[] = [];
+  selectedProjectTasks: string[] = [];
+  selectedTask: string = '';
+tAt: number | null = null;
+
+selectFilter(option: string) {
+  this.filterType = option;
+  this.showDropdown = false;
+  this.loadWorkLogsByFilter();
+}
+
+
   constructor(private cdr: ChangeDetectorRef, private ngZone: NgZone) {}
 
   ngOnInit() {
@@ -66,53 +84,83 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
   //   });
   // }, 60000);
 
+
+   
+
   
 
-    const savedState = localStorage.getItem('workTimerState');
-    if (savedState) {
-      const { startTimestamp, selectedLocation, isTimerRunning,projectTitle } = JSON.parse(savedState);
-      if (isTimerRunning) {
-        this.startTimestamp = startTimestamp;
-        this.selectedLocation = selectedLocation;
-        this.projectTitle=projectTitle;
-        this.isTimerRunning = true;
-        this.startTime = new Date(this.startTimestamp).toLocaleTimeString(); // 👈 convert timestamp to readable time
+    onAuthStateChanged(this.auth, user => {
+    if (user) {
+      this.ngZone.run(() => {
+        this.userEmail = user.email || '';
+        this.username = this.getUsername(this.userEmail);
+        this.userInitials = this.getInitials(this.userEmail);
+        this.checkMainAdmin(this.userEmail);
+        this.checkAdminStatus(this.userEmail);
+        this.filterType = 'weekly';
+        this.loadActiveProjects().then(() => {
+          this.restoreTimerState(); // ✅ safe to call after projects loaded
+        });
+        this.loadWorkLogsByFilter();
+        this.loadProfilePicture();
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      });
+    } else {
+      this.router.navigate(['/login']);
+    }
+  });
+}
 
-        console.log("checking start",this.startTime);
-  
+
+  restoreTimerState() {
+  const savedState = localStorage.getItem('workTimerState');
+  if (savedState) {
+    const {
+      startTimestamp,
+      selectedLocation,
+      isTimerRunning,
+      projectTitle,
+      selectedTask,
+      tAt,
+      projectKey
+    } = JSON.parse(savedState);
+
+    if (isTimerRunning) {
+      this.startTimestamp = startTimestamp;
+      this.selectedLocation = selectedLocation;
+      this.projectTitle = projectTitle;
+      this.selectedTask = selectedTask || '';
+      this.tAt = tAt ?? null;
+      this.isTimerRunning = true;
+      this.startTime = new Date(this.startTimestamp).toLocaleTimeString();
+
+      // ✅ activeProjects is loaded now
+      const selectedProject = this.activeProjects.find(p => p.key === projectKey);
+      this.selectedProjectTasks = selectedProject ? Object.values(selectedProject.tasks || {}) : [];
+
+      const now = Date.now();
+      const elapsedMs = now - this.startTimestamp;
+      this.secondsElapsed = Math.floor(elapsedMs / 1000);
+      this.currentTimer = this.formatTime(this.secondsElapsed);
+
+      this.timerSub = interval(1000).subscribe(() => {
         const now = Date.now();
         const elapsedMs = now - this.startTimestamp;
         this.secondsElapsed = Math.floor(elapsedMs / 1000);
         this.currentTimer = this.formatTime(this.secondsElapsed);
-  
-        this.timerSub = interval(1000).subscribe(() => {
-          const now = Date.now();
-          const elapsedMs = now - this.startTimestamp;
-          this.secondsElapsed = Math.floor(elapsedMs / 1000);
-          this.currentTimer = this.formatTime(this.secondsElapsed);
-        });
+      });
+
+      // ⚠️ Final validation warning
+      if (!this.projectTitle || !this.selectedTask || this.tAt === null || this.tAt < 0) {
+        alert('⚠️ Restored timer has incomplete or invalid data. Please stop and re-enter.');
       }
     }
+  }
+}
 
-    onAuthStateChanged(this.auth, user => {
-      if (user) {
-        
-        this.ngZone.run(() => {
-          this.userEmail = user.email || '';
-          this.username = this.getUsername(this.userEmail);
-          this.userInitials = this.getInitials(this.userEmail);
-          this.checkMainAdmin(this.userEmail);
-          this.checkAdminStatus(this.userEmail);
-          this.loadWorkLogs();
-          this.loadProfilePicture(); // ✅ Load image
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        });
-      } else {
-        this.router.navigate(['/login']);
-      }
-    });
-  }  
+
+
 
   
 
@@ -167,13 +215,52 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
 }
 
 
+
+
+
+  loadActiveProjects(): Promise<void> {
+  return new Promise((resolve) => {
+    const db = getDatabase();
+    const projectRef = ref(db, 'projects');
+
+    onValue(projectRef, (snapshot) => {
+      const data = snapshot.val();
+      this.activeProjects = [];
+
+      if (data) {
+        for (const key in data) {
+          if (data[key].active) {
+            this.activeProjects.push({ key, ...data[key] });
+          }
+        }
+      }
+
+      resolve(); // 🔁 Notify when done loading
+    });
+  });
+}
+
+  onProjectChange() {
+    const selectedProject = this.activeProjects.find(p => p.projectTitle === this.projectTitle);
+    if (selectedProject && selectedProject.tasks) {
+      this.selectedProjectTasks = Object.values(selectedProject.tasks);
+    } else {
+      this.selectedProjectTasks = [];
+    }
+
+    this.selectedTask = '';
+  }
+
+  
+
+
  onAvatarOptionChange() {
   switch (this.avatarOption) {
 
     case 'option1':
       this.loading=true;
       setTimeout(() => {
-        this.router.navigate(['/admin']);
+        this.router.navigate(['/report']);
       }, 500); 
       break;
 
@@ -206,7 +293,7 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
     case 'option6':
      this.loading = true; 
      setTimeout(() => {
-      this.router.navigate(['/status']);
+      this.router.navigate(['/leave']);
        }, 500);
       break;
 
@@ -219,6 +306,13 @@ export class WorkTrackerComponent implements OnInit, OnDestroy {
       if (confirmLogout) {
         this.logout();
       }
+       }, 500);
+      break;
+
+      case 'option8':
+     this.loading = true; 
+     setTimeout(() => {
+      this.router.navigate(['/addproject']);
        }, 500);
       break;
   }
@@ -306,13 +400,7 @@ if (confirmed) {
   }
 }
 
-// Leave page navigate (leave button)
- goToLeavePage() {
-     this.loading = true; 
-     setTimeout(() => {
-    this.router.navigate(['/leave']);
-    }, 500);
-  }
+
 
 //chart data
 
@@ -322,7 +410,23 @@ if (confirmed) {
     {
       label: 'Working Hours',
       data: [],
-      backgroundColor: 'blue'
+      backgroundColor: (ctx) => {
+        const chart = ctx.chart;
+        const { ctx: canvasCtx, chartArea } = chart;
+        if (!chartArea) return;
+
+        const gradient = canvasCtx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+        gradient.addColorStop(0, '#facc15'); // yellow
+        gradient.addColorStop(0.5, '#34d399'); // green
+        gradient.addColorStop(1, '#60a5fa'); // blue
+        return gradient;
+      },
+      hoverBackgroundColor: '#9333ea',
+      borderRadius: 12,
+      borderSkipped: false,
+      barThickness: 30,
+      categoryPercentage: 0.7,
+      barPercentage: 0.9,
     }
   ]
 };
@@ -330,28 +434,67 @@ if (confirmed) {
 chartOptions: ChartOptions<'bar'> = {
   responsive: true,
   maintainAspectRatio: false,
+  animation: {
+    duration: 1500,
+    easing: 'easeInOutQuart'
+  },
   scales: {
     x: {
-      title: { display: true, text: 'Date' },
-      ticks: { maxRotation: 45, minRotation: 30 },
-      grid: { display: false },
-      // Make bars take up more width
-      stacked: false
+      title: {
+        display: true,
+        text: 'Date',
+        color: '#0d0d0d',
+        font: { weight: 'bold', size: 14 }
+      },
+      ticks: {
+        maxRotation: 0,
+        minRotation: 0,
+        color: '#0d0d0d'
+      },
+      grid: { display: false }
     },
     y: {
-      title: { display: true, text: 'Working Seconds (HH:MM:SS)' },
-      suggestedMin: 0,
-      ticks: {
-        stepSize: 1800,
-        callback: (value: any) => this.secondsToHHMMSS(value)
-      },
-      grid: { display: true }
-    }
+  title: {
+    display: true,
+    text: 'Working Hours',
+    color: '#0d0d0d',
+    font: { weight: 'bold', size: 14 }
+  },
+  ticks: {
+    stepSize: 3600,
+    callback: (value: any) => {
+      const hours = value / 3600;
+      return hours < 1 ? '0 hrs' : (hours === 1 ? '1 hrs' : `${hours} hrs`);
+    },
+    color: '#0d0d0d'
+  },
+  suggestedMin: 0,
+  suggestedMax: 28800, // 8 hours in seconds (8 * 3600)
+  grid: {
+    color: 'rgba(255,255,255,0.1)',
+    borderDash: [4, 4]
+  } as any
+}
+
   },
   plugins: {
-    legend: { position: 'top' }
+    legend: {
+      position: 'top',
+      labels: {
+        color: '#0d0d0d',
+        font: { size: 12, weight: 'bold' }
+      }
+    },
+    tooltip: {
+      backgroundColor: '#1f2937',
+      titleColor: '#facc15',
+      bodyColor: '#e5e7eb',
+      borderColor: '#3b82f6',
+      borderWidth: 1
+    }
   }
 };
+
 
 secondsToHHMMSS(totalSeconds: number): string {
   const hours = Math.floor(totalSeconds / 3600);
@@ -364,80 +507,71 @@ secondsToHHMMSS(totalSeconds: number): string {
 
 
 
-
-loadWorkLogs() {
+loadWorkLogsByFilter() {
   const db = getDatabase();
   const workLogsRef = ref(db, 'work-logs');
 
-  const logsByDate: { [date: string]: { workSeconds: number } } = {};
-  let totalSeconds = 0;
+  get(workLogsRef).then((snapshot) => {
+    const allLogs = snapshot.exists() ? snapshot.val() : {};
+    const filteredLogs: { [date: string]: number } = {};
+    const now = new Date();
 
-  get(workLogsRef).then((workSnapshot) => {
-  const workData = workSnapshot.exists() ? workSnapshot.val() : {};
+    for (const key in allLogs) {
+      const log = allLogs[key];
+      if (log.email !== this.userEmail) continue;
 
-  const logsByDate: { [date: string]: { workSeconds: number } } = {};
-  let totalSeconds = 0;
-
-  const today = new Date();
-  const recentDatesSet = new Set<string>();
-
-  // Collect last 8 ISO dates
-  for (let i = 0; i < 8; i++) {
-    const date = new Date();
-    date.setDate(today.getDate() - i);
-    const iso = date.toISOString().split('T')[0]; // YYYY-MM-DD
-    recentDatesSet.add(iso);
-  }
-
-  // Process work logs
-  for (const key in workData) {
-    const log = workData[key];
-    if (log.email === this.userEmail) {
       const [day, month, year] = log.date.split('/');
-      const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      const logDate = new Date(`${year}-${month}-${day}`);
+      const iso = logDate.toISOString().split('T')[0];
 
-      if (recentDatesSet.has(isoDate)) {
-        const durationSeconds = this.durationToSeconds(log.duration);
+      let include = false;
 
-        if (!logsByDate[isoDate]) logsByDate[isoDate] = { workSeconds: 0 };
-        logsByDate[isoDate].workSeconds += durationSeconds;
-        totalSeconds += durationSeconds;
+      if (this.filterType === 'weekly') {
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(now.getDate() - 7);
+        include = logDate >= oneWeekAgo && logDate <= now;
+      } else if (this.filterType === 'monthly') {
+        include = logDate.getMonth() === now.getMonth() && logDate.getFullYear() === now.getFullYear();
+      } else if (this.filterType === 'yearly') {
+        include = logDate.getFullYear() === now.getFullYear();
+      } else if (this.filterType === 'custom' && this.customStartDate && this.customEndDate) {
+        const start = new Date(this.customStartDate);
+        const end = new Date(this.customEndDate);
+        include = logDate >= start && logDate <= end;
+      }
+
+      if (include) {
+        const duration = this.durationToSeconds(log.duration);
+        filteredLogs[iso] = (filteredLogs[iso] || 0) + duration;
       }
     }
-  }
 
-  // Sort and prepare chart data
-  const sortedDates = Array.from(recentDatesSet).sort();
-  const labels: string[] = [];
-  const workDataPoints: number[] = [];
+    const sortedDates = Object.keys(filteredLogs).sort();
+    const labels = sortedDates.map(dateStr => {
+      const dateObj = new Date(dateStr);
+      return dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    });
+    const dataPoints = sortedDates.map(d => filteredLogs[d]);
 
-  for (const isoDate of sortedDates) {
-    const [year, month, day] = isoDate.split('-');
-    labels.push(`${day}/${month}/${year}`);
-
-    const workSeconds = logsByDate[isoDate]?.workSeconds || 0;
-    workDataPoints.push(workSeconds);
-  }
-
-  this.chartData = {
-  labels,
-  datasets: [
-    {
-      label: 'Working Seconds',
-      data: workDataPoints,
-      backgroundColor: 'blue',
-      barThickness: 30, // 🔧 Controls bar width
-      // Alternatively, you can use these instead:
-      categoryPercentage: 0.8,
-      barPercentage: 0.9,
-    }
-  ]
-};
-
-  this.totalDurationInSeconds = totalSeconds;
-});
-
+    this.chartData = {
+      labels,
+      datasets: [
+        {
+          label: 'Working Hours',
+          data: dataPoints,
+          backgroundColor:'#3689F3',
+          hoverBackgroundColor: '#9333ea',
+          borderRadius: 12,
+          borderSkipped: false,
+          barThickness: 30,
+          categoryPercentage: 0.7,
+          barPercentage: 0.9,
+        }
+      ]
+    };
+  });
 }
+
 
 
 
@@ -458,75 +592,102 @@ loadWorkLogs() {
 
 
   onToggleTimer(event: any) {
-    const isChecked = event.target.checked;
+  const isChecked = event.target.checked;
 
-    if (isChecked) {
-      if (!this.selectedLocation) {
-        this.locationError = true;
-        event.target.checked = false;
-        this.isTimerRunning = false;
-        return;
-      }
+  if (isChecked) {
+    // ✅ Starting timer — validate all required fields
 
-      if (!this.projectTitle || this.projectTitle.trim() === '') {
-  alert('Please enter a project title before starting the timer.');
-  event.target.checked = false;
-  this.isTimerRunning = false;
-  return;
-}
+    if (!this.selectedLocation) {
+      this.locationError = true;
+      alert('⚠️ Please select a location.');
+      event.target.checked = false;
+      this.isTimerRunning = false;
+      return;
+    }
 
-      const confirmStart = window.confirm('Ready to begin your workday? Click Confirm to start the timer.');
-      if (confirmStart) {
-        this.locationError = false;
-        this.isTimerRunning = true;
-        this.startWorkTimer();
+    if (!this.projectTitle || this.projectTitle.trim() === '') {
+      alert('⚠️ Please select a project.');
+      event.target.checked = false;
+      this.isTimerRunning = false;
+      return;
+    }
 
-        
-        
-      } else {
-        event.target.checked = false;
-        this.isTimerRunning = false;
-      }
+    if (!this.selectedTask || this.selectedTask.trim() === '') {
+      alert('⚠️ Please select a task.');
+      event.target.checked = false;
+      this.isTimerRunning = false;
+      return;
+    }
+
+    if (this.tAt === null || this.tAt < 0) {
+      alert('⚠️ Please enter a valid TAT (minimum 1).');
+      event.target.checked = false;
+      this.isTimerRunning = false;
+      return;
+    }
+
+    // 🟢 Confirm start
+    const confirmStart = window.confirm('Ready to begin your workday? Click Confirm to start the timer.');
+    if (confirmStart) {
+      this.locationError = false;
+      this.isTimerRunning = true;
+      this.startWorkTimer();
     } else {
-      const confirmStop = window.confirm('All Done? Click Confirm to Punch Out.');
-      if (confirmStop) {
-        this.isTimerRunning = false;
-        this.stopWorkTimerAndSave();
-      } else {
-        event.target.checked = true;
-        this.isTimerRunning = true;
-      }
+      event.target.checked = false;
+      this.isTimerRunning = false;
+    }
+
+  } else {
+    // ⏹️ Stopping the timer
+    const confirmStop = window.confirm('All done? Click Confirm to Punch Out.');
+    if (confirmStop) {
+      this.isTimerRunning = false;
+      this.stopWorkTimerAndSave();
+    } else {
+      event.target.checked = true;
+      this.isTimerRunning = true;
     }
   }
+}
+
 
   // timer satrt (toggle button)
 
   startWorkTimer() {
-    this.startTimestamp = Date.now();
-    this.startTime = this.formatDate(new Date());
-    this.isTimerRunning = true;
-  
-    // Save to localStorage
-    localStorage.setItem('workTimerState', JSON.stringify({
-      startTimestamp: this.startTimestamp,
-      selectedLocation: this.selectedLocation,
-      projectTitle:this.projectTitle,
-      isTimerRunning: true
-    }));
-  
-    this.timerSub = interval(1000).subscribe(() => {
-      const now = Date.now();
-      const elapsedMs = now - this.startTimestamp;
-      this.secondsElapsed = Math.floor(elapsedMs / 1000);
-      this.currentTimer = this.formatTime(this.secondsElapsed);
-    });
-  }
+  this.startTimestamp = Date.now();
+  this.startTime = new Date().toLocaleTimeString('en-GB', {
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false
+});
+  this.isTimerRunning = true;
+
+  // Save to localStorage
+  const selectedProject = this.activeProjects.find(p => p.projectTitle === this.projectTitle);
+
+localStorage.setItem('workTimerState', JSON.stringify({
+  startTimestamp: this.startTimestamp,
+  selectedLocation: this.selectedLocation,
+  projectTitle: this.projectTitle,
+  selectedTask: this.selectedTask,
+  tAt: this.tAt,
+  projectKey: selectedProject?.key, // ✅ save key
+  isTimerRunning: true
+}));
+
+  this.timerSub = interval(1000).subscribe(() => {
+    const now = Date.now();
+    const elapsedMs = now - this.startTimestamp;
+    this.secondsElapsed = Math.floor(elapsedMs / 1000);
+    this.currentTimer = this.formatTime(this.secondsElapsed);
+  });
+}
 
 
   
 // stop timer(toggle button) and data store db
 
-  stopWorkTimerAndSave() {
+ stopWorkTimerAndSave() {
   this.loading = true;
 
   setTimeout(() => {
@@ -535,47 +696,58 @@ loadWorkLogs() {
     this.secondsElapsed = Math.floor(elapsedMs / 1000);
     this.currentTimer = this.formatTime(this.secondsElapsed);
 
-    this.endTime = this.formatDate(new Date());
+    this.endTime = new Date().toLocaleTimeString('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+
     this.submittedAt = this.formatDate(new Date());
 
-    if (!this.selectedLocation) {
-      this.locationError = true;
-      this.loading = false;
-      return;
+    // ✅ Make sure timer is stopped
+    if (this.timerSub) {
+      this.timerSub.unsubscribe();
+      this.timerSub = null;
     }
 
-    if (this.timerSub) this.timerSub.unsubscribe();
+    // ✅ Clear persisted state
+    localStorage.removeItem('workTimerState');
 
     const db = getDatabase();
+    const logsRef = ref(db, 'work-logs');
+
     const workLog = {
       email: this.userEmail,
       startTime: this.startTime,
       endTime: this.endTime,
       duration: this.currentTimer,
       projectTitle: this.projectTitle,
+      selectedTask: this.selectedTask,
+      tAt: this.tAt,
       location: this.selectedLocation,
       date: this.formatDate(new Date(), true),
       submittedAt: this.submittedAt
     };
 
-    const logsRef = ref(db, 'work-logs');
-
     push(logsRef, workLog)
       .then(() => {
         this.showSuccessAlert('✅ Work log saved successfully!');
-        this.loadWorkLogs();
+        this.loadWorkLogsByFilter();
+
+        // ✅ Reset timer values
+        this.currentTimer = '00:00:00';
+        this.isTimerRunning = false;
       })
       .catch(err => {
         console.error('Error saving log:', err);
         this.showSuccessAlert('❌ Error saving work log.');
+        this.isTimerRunning = true; // rollback
       })
       .finally(() => {
         this.loading = false;
       });
 
-    this.currentTimer = '00:00:00';
-    localStorage.removeItem('workTimerState');
-  }, 500); // 500ms delay before saving
+  }, 500);
 }
 
   
@@ -620,66 +792,7 @@ loadWorkLogs() {
 
 
 
-  // Report download 
-
-  downloadExcelReport() {
-  this.loading = true;
-
-  setTimeout(() => {
-    const db = getDatabase();
-    const logsRef = ref(db, 'work-logs');
-
-    get(logsRef)
-      .then(snapshot => {
-        if (snapshot.exists()) {
-          const data = snapshot.val();
-          const userLogs = [];
-
-          for (const key in data) {
-            const log = data[key];
-            if (log.email === this.userEmail) {
-              userLogs.push({
-                Date: log.date,
-                'Project Title': log.projectTitle,
-                'Start Time': log.startTime,
-                'End Time': log.endTime,
-                Duration: log.duration,
-                Location: log.location,
-              });
-            }
-          }
-
-          if (userLogs.length === 0) {
-            this.showSuccessAlert('⚠️ No work logs available for download.');
-            this.loading = false;
-            return;
-          }
-
-          const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(userLogs);
-          const workbook: XLSX.WorkBook = {
-            Sheets: { 'Work Logs': worksheet },
-            SheetNames: ['Work Logs']
-          };
-
-          const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-          const blob: Blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-          const fileName = `WorkLogs-${this.username}-${new Date().toISOString().slice(0, 10)}.xlsx`;
-
-          saveAs(blob, fileName);
-        } else {
-          this.showSuccessAlert('⚠️ No work logs found.');
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching logs:', error);
-        this.showSuccessAlert('❌ Failed to generate report.');
-      })
-      .finally(() => {
-        this.loading = false;
-      });
-
-  }, 1000); // 1000ms delay before processing
-}
+ 
 
 gotoviewwork(email: string): void {
   this.router.navigate(['/work-detail'], {

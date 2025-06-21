@@ -1,0 +1,36 @@
+.tabs-container {
+  position: relative;
+  display: flex;
+  background: #eee;
+  border-radius: 15px;
+  overflow: hidden;
+  height: 36px;
+  width: 100%;          /* fill full space */
+  max-width: 800px;     /* change as needed */
+  font-size: 14px;
+}
+
+
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 6px 0; /* reduced padding */
+  cursor: pointer;
+  z-index: 2;
+  font-weight: 500;
+  user-select: none;
+}
+
+.tab.active {
+  color: white;
+}
+
+.slide {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  background: #0d6efd;
+  transition: left 0.3s ease;
+  z-index: 1;
+  border-radius: 15px; /* match new size */
+}

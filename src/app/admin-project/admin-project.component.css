@@ -1,0 +1,6 @@
+.page-link {
+  cursor: pointer;
+}
+.page-link:hover {
+  background-color: #e9ecef;
+}
